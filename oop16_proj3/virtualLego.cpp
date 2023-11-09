@@ -2,7 +2,7 @@
 //
 // File: virtualLego.cpp
 //
-// Original Author: ��â�� Chang-hyeon Park, 
+// Original Author: 박창현 Chang-hyeon Park, 
 // Modified by Bong-Soo Sohn and Dong-Jun Kim
 // 
 // Originally programmed for Virtual LEGO. 
@@ -25,7 +25,7 @@ const int Height = 768;
 
 // There are four balls
 // initialize the position (coordinate) of each ball (ball0 ~ ball3)
-const float spherePos[4][2] = { {-2.7f,0} , {+2.4f,0} , {3.3f,0} , {-2.7f,-0.9f}}; 
+const float spherePos[4][2] = { {-2.7f,0} , {+2.7f,0.9f} , {3.3f,0} , {-2.7f,-0.9f}}; 
 // initialize the color of each ball (ball0 ~ ball3)
 const D3DXCOLOR sphereColor[4] = {d3d::RED, d3d::RED, d3d::YELLOW, d3d::WHITE};
 
@@ -99,17 +99,39 @@ public:
 		m_pSphereMesh->DrawSubset(0);
     }
 	
-    bool hasIntersected(CSphere& ball) 
-	{
-		// Insert your code here.
+	bool hasIntersected(CSphere& ball) {
+		// 두 공의 중심 사이의 거리를 제곱값으로 계산
+		float difference_x = center_x - ball.center_x; // X 좌표 차이
+		float difference_z = center_z - ball.center_z; // Z 좌표 차이
+		float squared_distance = difference_x * difference_x + difference_z * difference_z;
 
-		return false;
+		// 제곱거리가 반지름 제곱값의 두 배보다 작은지 확인
+		return squared_distance < (M_RADIUS * 2)* (M_RADIUS * 2);
 	}
+
 	
-	void hitBy(CSphere& ball) 
-	{ 
-		// Insert your code here.
-	}
+    void hitBy(CSphere& ball)
+    {
+        if (hasIntersected(ball)) {// 충돌 여부를 확인
+
+            //'ball'과의 위치 차이를 계산
+            float difference_x = (ball.getCenter().x - center_x);
+            float difference_z = (ball.getCenter().z - center_z);
+
+            //'ball'의 속도 크기 및 위치 차이 크기를 계산
+            float velocity_magnitude = sqrt(ball.getVelocity_X() * ball.getVelocity_X() + ball.getVelocity_Z() * ball.getVelocity_Z());
+            float distance_magnitude = sqrt(difference_x * difference_x + difference_z * difference_z);
+
+            // 이를 바탕으로 조정 상수를 계산
+            float adjustment_constant = velocity_magnitude / distance_magnitude;
+
+            float new_velocity_x = adjustment_constant * difference_x;
+            float new_velocity_z = adjustment_constant * difference_z;
+
+            ball.setPower(new_velocity_x, new_velocity_z);
+        }
+    }
+
 
 	void ballUpdate(float timeDiff) 
 	{
@@ -242,13 +264,13 @@ public:
 	bool hasIntersected(CSphere& ball) 
 	{
 		// Insert your code here.
-		return false;
 	}
 
-	void hitBy(CSphere& ball) 
+	void hitBy(CSphere& ball)
 	{
 		// Insert your code here.
-	}    
+		
+	}
 	
 	void setPosition(float x, float y, float z)
 	{
@@ -275,6 +297,8 @@ private :
 // -----------------------------------------------------------------------------
 // CLight class definition
 // -----------------------------------------------------------------------------
+
+
 
 class CLight {
 public:
@@ -535,10 +559,10 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
 				D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
 				double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
-					pow(targetpos.z - whitepos.z, 2)));		// �⺻ 1 ��и�
-				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 ��и�
-				if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 ��и�
-				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0){ theta = PI + theta; } // 3 ��и�
+					pow(targetpos.z - whitepos.z, 2)));		// 기본 1 사분면
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 사분면
+				if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 사분면
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0){ theta = PI + theta; } // 3 사분면
 				double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
 				g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
 
