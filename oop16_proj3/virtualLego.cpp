@@ -99,15 +99,22 @@ public:
 		m_pSphereMesh->DrawSubset(0);
     }
 	
-	bool hasIntersected(CSphere& ball) {
-		// 두 공의 중심 사이의 거리를 제곱값으로 계산
-		float difference_x = center_x - ball.center_x; // X 좌표 차이
-		float difference_z = center_z - ball.center_z; // Z 좌표 차이
-		float squared_distance = difference_x * difference_x + difference_z * difference_z;
+    bool hasIntersected(CSphere& ball) // 두 공이 충돌 했는지 확인
+   {
+      D3DXVECTOR3 cord = this->getCenter();
+      D3DXVECTOR3 ball_cord = ball.getCenter();
+      double xDistance = abs((cord.x - ball_cord.x) * (cord.x - ball_cord.x));
+      double zDistance = abs((cord.z - ball_cord.z) * (cord.z - ball_cord.z));  //y는 보지 않는 이유 -> 게임이 조작되는 게임판 평면 상에서 움직이기 때문에 x축이랑 z축만 고려하면 된다
+      double totalDistance = sqrt(xDistance + zDistance);
 
-		// 제곱거리가 반지름 제곱값의 두 배보다 작은지 확인
-		return squared_distance < (M_RADIUS * 2)* (M_RADIUS * 2);
-	}
+      if (totalDistance < (this->getRadius() + ball.getRadius()))
+      {
+         return true;
+      }
+      return false;
+
+      // Insert your code here.
+   }
 
 	
     void hitBy(CSphere& ball)
@@ -122,11 +129,11 @@ public:
             float velocity_magnitude = sqrt(ball.getVelocity_X() * ball.getVelocity_X() + ball.getVelocity_Z() * ball.getVelocity_Z());
             float distance_magnitude = sqrt(difference_x * difference_x + difference_z * difference_z);
 
-            // 이를 바탕으로 조정 상수를 계산
-            float adjustment_constant = velocity_magnitude / distance_magnitude;
+            // 이를 바탕으로 충돌 정도를 계산
+            float collision_adjustment = velocity_magnitude / distance_magnitude;
 
-            float new_velocity_x = adjustment_constant * difference_x;
-            float new_velocity_z = adjustment_constant * difference_z;
+            float new_velocity_x = collision_adjustment * difference_x;
+            float new_velocity_z = collision_adjustment * difference_z;
 
             ball.setPower(new_velocity_x, new_velocity_z);
         }
