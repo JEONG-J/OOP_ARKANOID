@@ -117,25 +117,42 @@ public:
    }
 
 	
-    void hitBy(CSphere& ball)
-    {
-        if (hasIntersected(ball)) {// 충돌 여부를 확인
+  void hitBy(CSphere& ball) {
+        if (this->hasIntersected(ball)) {
+            // 위치 차이 계산
+            double diff_x = this->center_x - ball.center_x;
+            double diff_z = this->center_z - ball.center_z;
 
-            //'ball'과의 위치 차이를 계산
-            float difference_x = (ball.getCenter().x - center_x);
-            float difference_z = (ball.getCenter().z - center_z);
+            // 거리 계산
+            double distance = sqrt((diff_x * diff_x) + (diff_z * diff_z));
 
-            //'ball'의 속도 크기 및 위치 차이 크기를 계산
-            float velocity_magnitude = sqrt(ball.getVelocity_X() * ball.getVelocity_X() + ball.getVelocity_Z() * ball.getVelocity_Z());
-            float distance_magnitude = sqrt(difference_x * difference_x + difference_z * difference_z);
+            // 충돌 전 속도 계산: 
+            double thisVelocityX = this->m_velocity_x;
+            double thisVelocityZ = this->m_velocity_z;
 
-            // 이를 바탕으로 충돌 정도를 계산
-            float collision_adjustment = velocity_magnitude / distance_magnitude;
+            double ballVelocityX = ball.m_velocity_x;
+            double ballVelocityZ = ball.m_velocity_z;
 
-            float new_velocity_x = collision_adjustment * difference_x;
-            float new_velocity_z = collision_adjustment * difference_z;
+            // 충돌 각도 계산
+            // x축에서의 차이/전체 거리 차이
+            // z축에서의 차이/전체 거리 차이
+            // 각각 x축 및 y 축에서 힘이 얼마나 작용하는지 표현
+            // 각 축에서의 차이가 멀수록, 힘이 더 강하게 작용
+            // ex)x축에서 차이가 많이 난다면 x축 방향으로 힘이 강하게 작용
+            double cosTheta = diff_x / distance;
+            double sinTheta = diff_z / distance;
 
-            ball.setPower(new_velocity_x, new_velocity_z);
+            // 최종 속도 및 방향 설정
+            // 계산식 readme.md에 업로드
+            this->setPower((ballVelocityX * cosTheta + ballVelocityZ * sinTheta) * cosTheta 
+                - (thisVelocityZ * cosTheta - thisVelocityX * sinTheta) * sinTheta,
+                (ballVelocityX * cosTheta + ballVelocityZ * sinTheta) * sinTheta 
+                + (thisVelocityZ * cosTheta - thisVelocityX * sinTheta) * cosTheta);
+
+            ball.setPower((thisVelocityX * cosTheta + thisVelocityZ * sinTheta) * cosTheta 
+                - (ballVelocityZ * cosTheta - ballVelocityX * sinTheta) * sinTheta,
+                (thisVelocityX * cosTheta + thisVelocityZ * sinTheta) * sinTheta 
+                + (ballVelocityZ * cosTheta - ballVelocityX * sinTheta) * cosTheta);
         }
     }
 
