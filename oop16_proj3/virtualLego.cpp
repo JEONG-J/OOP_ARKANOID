@@ -2,7 +2,7 @@
 //
 // File: virtualLego.cpp
 //
-// Original Author: ¹ÚÃ¢Çö Chang-hyeon Park, 
+// Original Author: ë°•ì°½í˜„ Chang-hyeon Park, 
 // Modified by Bong-Soo Sohn and Dong-Jun Kim
 // 
 // Originally programmed for Virtual LEGO. 
@@ -204,6 +204,11 @@ public:
     }
     ~CWall(void) {}
 public:
+    int sign(double value) {
+	if (value > 0) return 1;
+	if (value < 0) return -1;
+	return 0;
+    }
     bool create(IDirect3DDevice9* pDevice, float ix, float iz, float iwidth, float iheight, float idepth, D3DXCOLOR color = d3d::WHITE)
     {
         if (NULL == pDevice)
@@ -238,28 +243,71 @@ public:
         pDevice->SetMaterial(&m_mtrl);
 		m_pBoundMesh->DrawSubset(0);
     }
-	
-	bool hasIntersected(CSphere& ball) 
-	{
-		// Insert your code here.
-		return false;
-	}
 
-	void hitBy(CSphere& ball) 
-	{
-		// Insert your code here.
-	}    
-	
-	void setPosition(float x, float y, float z)
-	{
-		D3DXMATRIX m;
-		this->m_x = x;
-		this->m_z = z;
+    bool hasIntersectedx(CSphere& ball) 
+    {
+	float sphereCenterX = ball.getCenter().x;
+	float wallX = this->m_x;
 
-		D3DXMatrixTranslation(&m, x, y, z);
-		setLocalTransform(m);
-	}
-	
+	float distance = abs(sphereCenterX - wallX) - ball.getRadius();
+	return distance <= 0;
+    }
+
+    void hitBy(CSphere& ball) {
+        if (this->hasIntersectedx(ball)) {
+            hitByx(ball);
+        }
+        else if (this->hasIntersectedz(ball)) {
+            hitByz(ball);
+        }
+        return;
+    }
+
+
+    void hitByx(CSphere& ball) 
+    {
+	const float someSmallDistance = 0.00005;
+	if (!this->hasIntersectedx(ball))
+		return;
+
+	D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
+
+	D3DXVECTOR3 incident(ball.getVelocity_X(), 0.0f, ball.getVelocity_Z());
+
+	D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+
+	ball.setPower(reflection.x, reflection.z);
+
+	D3DXVECTOR3 ballCenter = ball.getCenter();
+	ball.setCenter(ballCenter.x + sign(reflection.x) * someSmallDistance, ballCenter.y, ballCenter.z);
+    }    
+
+    bool hasIntersectedz(CSphere& ball)
+    {
+	float sphereCenterZ = ball.getCenter().z;
+	float wallZ = this->m_z;
+
+	float distance = abs(sphereCenterZ - wallZ) - ball.getRadius();
+	return distance <= 0;
+    }
+
+    void hitByz(CSphere& ball)
+    {
+	const float someSmallDistance = 0.00005;
+	if (!this->hasIntersectedz(ball))
+		return;
+
+	D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
+
+	D3DXVECTOR3 incident(ball.getVelocity_X(), 0.0f, ball.getVelocity_Z());
+
+	D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+
+	ball.setPower(reflection.x, reflection.z);
+
+	D3DXVECTOR3 ballCenter = ball.getCenter();
+	ball.setCenter(ballCenter.x, ballCenter.y, ballCenter.z + sign(reflection.z)*someSmallDistance);
+    }
     float getHeight(void) const { return M_HEIGHT; }
 	
 	
@@ -535,10 +583,10 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
 				D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
 				double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
-					pow(targetpos.z - whitepos.z, 2)));		// ±âº» 1 »çºÐ¸é
-				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 »çºÐ¸é
-				if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 »çºÐ¸é
-				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0){ theta = PI + theta; } // 3 »çºÐ¸é
+					pow(targetpos.z - whitepos.z, 2)));		// ê¸°ë³¸ 1 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0){ theta = PI + theta; } // 3 ì‚¬ë¶„ë©´
 				double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
 				g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
 
