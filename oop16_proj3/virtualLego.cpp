@@ -239,13 +239,13 @@ private:
 class CWall {
 
 private:
-
+	
     float					m_x;
-    float					m_z;
-    float                   m_width;
+	float					m_z;
+	float                   m_width;
     float                   m_depth;
-    float					m_height;
-
+	float					m_height;
+	
 public:
     CWall(void)
     {
@@ -257,20 +257,31 @@ public:
     }
     ~CWall(void) {}
 public:
+	int sign(double value) {
+		if (value > 0) return 1;
+		if (value < 0) return -1;
+		return 0;
+	}
+
+	D3DXVECTOR3 getCenter(void) const
+	{
+		D3DXVECTOR3 center(m_x, m_height / 2.0f, m_z);
+		return center;
+	}
     bool create(IDirect3DDevice9* pDevice, float ix, float iz, float iwidth, float iheight, float idepth, D3DXCOLOR color = d3d::WHITE)
     {
         if (NULL == pDevice)
             return false;
-
-        m_mtrl.Ambient = color;
-        m_mtrl.Diffuse = color;
+		
+        m_mtrl.Ambient  = color;
+        m_mtrl.Diffuse  = color;
         m_mtrl.Specular = color;
         m_mtrl.Emissive = d3d::BLACK;
-        m_mtrl.Power = 5.0f;
-
+        m_mtrl.Power    = 5.0f;
+		
         m_width = iwidth;
         m_depth = idepth;
-
+		
         if (FAILED(D3DXCreateBox(pDevice, iwidth, iheight, idepth, &m_pBoundMesh, NULL)))
             return false;
         return true;
@@ -289,20 +300,36 @@ public:
         pDevice->SetTransform(D3DTS_WORLD, &mWorld);
         pDevice->MultiplyTransform(D3DTS_WORLD, &m_mLocal);
         pDevice->SetMaterial(&m_mtrl);
-        m_pBoundMesh->DrawSubset(0);
+		m_pBoundMesh->DrawSubset(0);
+    }
+    CSphere getCollisionPoint(CSphere& ball) {
+        CSphere collisionPoint = ball;
+
+        int count = 0;
+        while (this->hasIntersectedx(collisionPoint) || this->hasIntersectedz(collisionPoint)) {
+            float backtrack_rate = 0.0000001;
+            collisionPoint.setCenter(collisionPoint.getCenter().x - backtrack_rate * ball.getVelocity_X(), collisionPoint.getCenter().y, collisionPoint.getCenter().z - backtrack_rate * ball.getVelocity_Z());
+            if (count++ > 100)
+                break;
+        }
+        return collisionPoint;
     }
 
-    // Utility function to determine the sign of a value
-    inline int sign(double value) {
-        return (value > 0) - (value < 0);
-    }
+	bool hasIntersectedx(CSphere& ball) 
+	{
+		float sphereCenterX = ball.getCenter().x;
+		float wallX = this->m_x;
 
-    bool hasIntersectedx(CSphere& ball)
+		float distance = abs(sphereCenterX - wallX) - (ball.getRadius()+0.1);
+		return distance <= 0;
+	}
+     
+    bool hasIntersectedz(CSphere& ball)
     {
-        float sphereCenterX = ball.getCenter().x;
-        float wallX = this->m_x;
+        float sphereCenterZ = ball.getCenter().z;
+        float wallZ = this->m_z;
 
-        float distance = abs(sphereCenterX - wallX) - ball.getRadius();
+        float distance = abs(sphereCenterZ - wallZ) - (ball.getRadius()+0.1);
         return distance <= 0;
     }
 
@@ -310,81 +337,67 @@ public:
         if (this->hasIntersectedx(ball)) {
             hitByx(ball);
         }
-        else if (this->hasIntersectedz(ball)) {
+        if (this->hasIntersectedz(ball)) {
             hitByz(ball);
         }
         return;
     }
 
 
-    void hitByx(CSphere& ball)
-    {
-        const float someSmallDistance = 0.00005;
-        if (!this->hasIntersectedx(ball))
-            return;
+	void hitByx(CSphere& ball) 
+	{
+		const float someSmallDistance = 0.000001;
+		if (!this->hasIntersectedx(ball))
+			return;
 
-        D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
+        CSphere cp = getCollisionPoint(ball);
+		D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
 
-        D3DXVECTOR3 incident(ball.getVelocity_X(), 0.0f, ball.getVelocity_Z());
+		D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
+		D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+        
+		ball.setPower(reflection.x, reflection.z);
+        ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
+	}    
 
-        D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+    
+	void hitByz(CSphere& ball)
+	{
+		const float someSmallDistance = 0.00005;
+		if (!this->hasIntersectedz(ball))
+			return;
 
-        ball.setPower(reflection.x, reflection.z);
+        CSphere cp = getCollisionPoint(ball);
+		D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
 
-        D3DXVECTOR3 ballCenter = ball.getCenter();
-        ball.setCenter(ballCenter.x + sign(reflection.x) * someSmallDistance, ballCenter.y, ballCenter.z);
-    }
+		D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
+		D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
 
+		ball.setPower(reflection.x, reflection.z);
+        ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
+	}
 
+	
+	void setPosition(float x, float y, float z)
+	{
+		D3DXMATRIX m;
+		this->m_x = x;
+		this->m_z = z;
 
-    bool hasIntersectedz(CSphere& ball)
-    {
-        float sphereCenterZ = ball.getCenter().z;
-        float wallZ = this->m_z;
-
-        float distance = abs(sphereCenterZ - wallZ) - ball.getRadius();
-        return distance <= 0;
-    }
-
-    void hitByz(CSphere& ball)
-    {
-        const float someSmallDistance = 0.00005f;
-        if (!this->hasIntersectedz(ball))
-            return;
-
-        D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
-
-        D3DXVECTOR3 incident(ball.getVelocity_X(), 0.0f, ball.getVelocity_Z());
-
-        D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
-
-        ball.setPower(reflection.x, reflection.z);
-
-        D3DXVECTOR3 ballCenter = ball.getCenter();
-        ball.setCenter(ballCenter.x, ballCenter.y, ballCenter.z + sign(reflection.z) * someSmallDistance);
-    }
-
-
-    void setPosition(float x, float y, float z)
-    {
-        D3DXMATRIX m;
-        this->m_x = x;
-        this->m_z = z;
-
-        D3DXMatrixTranslation(&m, x, y, z);
-        setLocalTransform(m);
-    }
-
+		D3DXMatrixTranslation(&m, x, y, z);
+		setLocalTransform(m);
+	}
+	
     float getHeight(void) const { return M_HEIGHT; }
-
-
-
-private:
+	
+	
+	
+private :
     void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
-
-    D3DXMATRIX              m_mLocal;
+	
+	D3DXMATRIX              m_mLocal;
     D3DMATERIAL9            m_mtrl;
-    ID3DXMesh* m_pBoundMesh;
+    ID3DXMesh*              m_pBoundMesh;
 };
 
 // -----------------------------------------------------------------------------
