@@ -35,4 +35,7 @@
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="Music\test.wav" />
+  </ItemGroup>
 </Project>

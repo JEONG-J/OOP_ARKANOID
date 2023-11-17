@@ -21,6 +21,7 @@
 #include "d3dUtility.h"
 
 
+
 IDirect3DDevice9* Device = NULL;
 
 //this is for music
@@ -168,7 +169,7 @@ public:
             //맞으면 대상 공 삭제
             //버전에 따라 점수 올리거나 속도 올릴 수 있음
             this->setCenter(100, 100, 100);
-            
+
         }
 
     }
@@ -248,13 +249,13 @@ private:
 class CWall {
 
 private:
-	
+
     float					m_x;
-	float					m_z;
-	float                   m_width;
+    float					m_z;
+    float                   m_width;
     float                   m_depth;
-	float					m_height;
-	
+    float					m_height;
+
 public:
     CWall(void)
     {
@@ -266,31 +267,31 @@ public:
     }
     ~CWall(void) {}
 public:
-	int sign(double value) {
-		if (value > 0) return 1;
-		if (value < 0) return -1;
-		return 0;
-	}
+    int sign(double value) {
+        if (value > 0) return 1;
+        if (value < 0) return -1;
+        return 0;
+    }
 
-	D3DXVECTOR3 getCenter(void) const
-	{
-		D3DXVECTOR3 center(m_x, m_height / 2.0f, m_z);
-		return center;
-	}
+    D3DXVECTOR3 getCenter(void) const
+    {
+        D3DXVECTOR3 center(m_x, m_height / 2.0f, m_z);
+        return center;
+    }
     bool create(IDirect3DDevice9* pDevice, float ix, float iz, float iwidth, float iheight, float idepth, D3DXCOLOR color = d3d::WHITE)
     {
         if (NULL == pDevice)
             return false;
-		
-        m_mtrl.Ambient  = color;
-        m_mtrl.Diffuse  = color;
+
+        m_mtrl.Ambient = color;
+        m_mtrl.Diffuse = color;
         m_mtrl.Specular = color;
         m_mtrl.Emissive = d3d::BLACK;
-        m_mtrl.Power    = 5.0f;
-		
+        m_mtrl.Power = 5.0f;
+
         m_width = iwidth;
         m_depth = idepth;
-		
+
         if (FAILED(D3DXCreateBox(pDevice, iwidth, iheight, idepth, &m_pBoundMesh, NULL)))
             return false;
         return true;
@@ -309,7 +310,7 @@ public:
         pDevice->SetTransform(D3DTS_WORLD, &mWorld);
         pDevice->MultiplyTransform(D3DTS_WORLD, &m_mLocal);
         pDevice->SetMaterial(&m_mtrl);
-		m_pBoundMesh->DrawSubset(0);
+        m_pBoundMesh->DrawSubset(0);
     }
     CSphere getCollisionPoint(CSphere& ball) {
         CSphere collisionPoint = ball;
@@ -324,21 +325,21 @@ public:
         return collisionPoint;
     }
 
-	bool hasIntersectedx(CSphere& ball) 
-	{
-		float sphereCenterX = ball.getCenter().x;
-		float wallX = this->m_x;
+    bool hasIntersectedx(CSphere& ball)
+    {
+        float sphereCenterX = ball.getCenter().x;
+        float wallX = this->m_x;
 
-		float distance = abs(sphereCenterX - wallX) - (ball.getRadius()+0.1);
-		return distance <= 0;
-	}
-     
+        float distance = abs(sphereCenterX - wallX) - (ball.getRadius() + 0.1);
+        return distance <= 0;
+    }
+
     bool hasIntersectedz(CSphere& ball)
     {
         float sphereCenterZ = ball.getCenter().z;
         float wallZ = this->m_z;
 
-        float distance = abs(sphereCenterZ - wallZ) - (ball.getRadius()+0.1);
+        float distance = abs(sphereCenterZ - wallZ) - (ball.getRadius() + 0.1);
         return distance <= 0;
     }
 
@@ -353,60 +354,60 @@ public:
     }
 
 
-	void hitByx(CSphere& ball) 
-	{
-		const float someSmallDistance = 0.000001;
-		if (!this->hasIntersectedx(ball))
-			return;
+    void hitByx(CSphere& ball)
+    {
+        const float someSmallDistance = 0.000001;
+        if (!this->hasIntersectedx(ball))
+            return;
 
         CSphere cp = getCollisionPoint(ball);
-		D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
+        D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
 
-		D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
-		D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
-        
-		ball.setPower(reflection.x, reflection.z);
+        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
+        D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+
+        ball.setPower(reflection.x, reflection.z);
         ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
-	}    
+    }
 
-    
-	void hitByz(CSphere& ball)
-	{
-		const float someSmallDistance = 0.00005;
-		if (!this->hasIntersectedz(ball))
-			return;
+
+    void hitByz(CSphere& ball)
+    {
+        const float someSmallDistance = 0.00005;
+        if (!this->hasIntersectedz(ball))
+            return;
 
         CSphere cp = getCollisionPoint(ball);
-		D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
+        D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
 
-		D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
-		D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
+        D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
 
-		ball.setPower(reflection.x, reflection.z);
+        ball.setPower(reflection.x, reflection.z);
         ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
-	}
+    }
 
-	
-	void setPosition(float x, float y, float z)
-	{
-		D3DXMATRIX m;
-		this->m_x = x;
-		this->m_z = z;
 
-		D3DXMatrixTranslation(&m, x, y, z);
-		setLocalTransform(m);
-	}
-	
+    void setPosition(float x, float y, float z)
+    {
+        D3DXMATRIX m;
+        this->m_x = x;
+        this->m_z = z;
+
+        D3DXMatrixTranslation(&m, x, y, z);
+        setLocalTransform(m);
+    }
+
     float getHeight(void) const { return M_HEIGHT; }
-	
-	
-	
-private :
+
+
+
+private:
     void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
-	
-	D3DXMATRIX              m_mLocal;
+
+    D3DXMATRIX              m_mLocal;
     D3DMATERIAL9            m_mtrl;
-    ID3DXMesh*              m_pBoundMesh;
+    ID3DXMesh* m_pBoundMesh;
 };
 
 // -----------------------------------------------------------------------------
@@ -509,6 +510,8 @@ bool LoadWavFile(const std::string& soundName, std::vector<BYTE>& audioData, WAV
     std::ifstream file(filePath, std::ios::binary);
     if (!file) {
         std::cerr << "Failed to open WAV file: " << filePath << std::endl;
+        ::MessageBox(0, "Failed to open WAV file:", 0, 0);
+
         return false;
     }
 
@@ -517,6 +520,8 @@ bool LoadWavFile(const std::string& soundName, std::vector<BYTE>& audioData, WAV
     file.read(riffHeader, sizeof(riffHeader));
     if (strncmp(riffHeader, "RIFF", 4) != 0 || strncmp(riffHeader + 8, "WAVE", 4) != 0) {
         std::cerr << "Invalid WAV file" << std::endl;
+        ::MessageBox(0, "Invalid WAV file:", 0, 0);
+
         return false;
     }
 
@@ -930,9 +935,9 @@ int WINAPI WinMain(HINSTANCE hinstance,
 
 
     d3d::EnterMsgLoop(Display);
-
-    Cleanup();
     player.Stop();
+    Cleanup();
+    
 
     Device->Release();
 

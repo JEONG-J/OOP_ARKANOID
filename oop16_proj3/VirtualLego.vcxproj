@@ -143,6 +143,9 @@
   <ItemGroup>
     <ResourceCompile Include="VirtualLego.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="Music\test.wav" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

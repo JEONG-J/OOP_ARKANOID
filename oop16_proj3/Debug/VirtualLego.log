@@ -3,23 +3,23 @@
 \\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
 \\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\d3dUtility.h(31,1): warning C4005: 'INFINITY': 매크로 재정의
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt\corecrt_math.h(88,1): message : 'INFINITY'의 이전 정의를 참조하십시오.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(178,34): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(214,30): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(179,34): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
 \\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(215,30): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(319,34): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(320,167): warning C4244: '인수': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(320,67): warning C4244: '인수': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(332,18): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(341,24): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(358,35): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(365,66): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(365,40): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(375,35): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(382,66): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(382,40): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(400,42): warning C4305: 'return': 'double'에서 'float'(으)로 잘립니다.
-\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(870,29): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(216,30): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(320,34): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(321,167): warning C4244: '인수': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(321,67): warning C4244: '인수': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(333,24): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(342,24): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(359,41): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(366,72): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(366,46): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(376,41): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(383,72): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(383,46): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(401,42): warning C4305: 'return': 'double'에서 'float'(으)로 잘립니다.
 \\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(871,29): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+\\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\virtualLego.cpp(872,29): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   d3dUtility.cpp
 \\Mac\Home\Documents\Projects\oop_arkanoid\oop16_proj3\d3dUtility.h(31,1): warning C4005: 'INFINITY': 매크로 재정의
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt\corecrt_math.h(88,1): message : 'INFINITY'의 이전 정의를 참조하십시오.
