@@ -265,3 +265,5 @@ d3d::BoundingSphere::BoundingSphere()
 {
 	_radius = 0.0f;
 }
+
+

@@ -10,14 +10,23 @@
 //        
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "d3dUtility.h"
+
 #include <vector>
 #include <ctime>
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
+#include <iostream>
+#include <fstream>
+#include "d3dUtility.h"
+
 
 IDirect3DDevice9* Device = NULL;
+
+//this is for music
+IXAudio2* g_audioEngine = nullptr;
+IXAudio2SourceVoice* g_sourceVoice = nullptr;
+IXAudio2MasteringVoice* g_masterVoice = nullptr;
 
 // window size
 const int Width = 1024;
@@ -488,6 +497,144 @@ private:
     d3d::BoundingSphere m_bound;
 };
 
+// -----------------------------------------------------------------------------
+// music buffer
+// -----------------------------------------------------------------------------
+
+bool LoadWavFile(const std::string& soundName, std::vector<BYTE>& audioData, WAVEFORMATEX& wfx) {
+    // Construct the file path
+    std::string filePath = "Music/" + soundName + ".wav";
+
+    // Open the file
+    std::ifstream file(filePath, std::ios::binary);
+    if (!file) {
+        std::cerr << "Failed to open WAV file: " << filePath << std::endl;
+        return false;
+    }
+
+    // Read the RIFF header
+    char riffHeader[12];
+    file.read(riffHeader, sizeof(riffHeader));
+    if (strncmp(riffHeader, "RIFF", 4) != 0 || strncmp(riffHeader + 8, "WAVE", 4) != 0) {
+        std::cerr << "Invalid WAV file" << std::endl;
+        return false;
+    }
+
+    // Read chunks until 'fmt ' chunk is found
+    char chunkHeader[8];
+    while (true) {
+        file.read(chunkHeader, sizeof(chunkHeader));
+        if (strncmp(chunkHeader, "fmt ", 4) == 0) break;
+        // Skip chunk data
+        file.seekg(*(int*)(chunkHeader + 4), std::ios::cur);
+    }
+
+    // Read 'fmt ' chunk
+    file.read((char*)&wfx, sizeof(WAVEFORMATEX));
+    file.seekg(*(int*)(chunkHeader + 4) - sizeof(WAVEFORMATEX), std::ios::cur);
+
+    // Read chunks until 'data' chunk is found
+    while (true) {
+        file.read(chunkHeader, sizeof(chunkHeader));
+        if (strncmp(chunkHeader, "data", 4) == 0) break;
+        // Skip chunk data
+        file.seekg(*(int*)(chunkHeader + 4), std::ios::cur);
+    }
+
+    int dataSize = *(int*)(chunkHeader + 4);
+    audioData.resize(dataSize);
+    file.read((char*)audioData.data(), dataSize);
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// Music class
+// -----------------------------------------------------------------------------
+class AudioPlayer {
+private:
+    IXAudio2* audioEngine = nullptr;
+    IXAudio2SourceVoice* sourceVoice = nullptr;
+    IXAudio2MasteringVoice* masterVoice = nullptr;
+
+public:
+    AudioPlayer() : audioEngine(nullptr), sourceVoice(nullptr), masterVoice(nullptr) {}
+
+    ~AudioPlayer() {
+        Cleanup();
+    }
+
+    bool Initialize() {
+        HRESULT hr = XAudio2Create(&audioEngine, 0, XAUDIO2_DEFAULT_PROCESSOR);
+        if (FAILED(hr)) {
+            std::cerr << "Error initializing XAudio2 engine" << std::endl;
+            return false;
+        }
+
+        hr = audioEngine->CreateMasteringVoice(&masterVoice);
+        if (FAILED(hr)) {
+            std::cerr << "Error creating mastering voice" << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
+    bool Play(const std::vector<BYTE>& audioData, const WAVEFORMATEX& waveFormat) {
+        XAUDIO2_BUFFER buffer = { 0 };
+        buffer.AudioBytes = audioData.size();
+        buffer.pAudioData = audioData.data();
+        buffer.Flags = XAUDIO2_END_OF_STREAM; // Indicates the end of the buffer
+
+        HRESULT hr = audioEngine->CreateSourceVoice(&sourceVoice, &waveFormat);
+        if (FAILED(hr)) {
+            std::cerr << "Error creating source voice" << std::endl;
+            return false;
+        }
+
+        hr = sourceVoice->SubmitSourceBuffer(&buffer);
+        if (FAILED(hr)) {
+            std::cerr << "Error submitting source buffer" << std::endl;
+            return false;
+        }
+
+        hr = sourceVoice->Start(0);
+        if (FAILED(hr)) {
+            std::cerr << "Error starting playback" << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
+
+    void Stop() {
+        if (sourceVoice) {
+            sourceVoice->Stop(0);
+            sourceVoice->FlushSourceBuffers();
+        }
+    }
+
+    void Cleanup() {
+        if (sourceVoice) {
+            sourceVoice->DestroyVoice();
+            sourceVoice = nullptr;
+        }
+
+        if (masterVoice) {
+            masterVoice->DestroyVoice();
+            masterVoice = nullptr;
+        }
+
+        if (audioEngine) {
+            audioEngine->Release();
+            audioEngine = nullptr;
+        }
+    }
+};
+
+
+
 
 // -----------------------------------------------------------------------------
 // Global variables
@@ -576,8 +723,11 @@ bool Setup()
     Device->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
 
     g_light.setLight(Device, g_mWorld);
+
+
     return true;
 }
+
 
 void Cleanup(void)
 {
@@ -755,9 +905,34 @@ int WINAPI WinMain(HINSTANCE hinstance,
         return 0;
     }
 
+    //music part
+    AudioPlayer player;
+
+    if (!player.Initialize())
+    {
+        ::MessageBox(0, "music - FAILED", 0, 0);
+        return 0;
+    }
+    std::vector<BYTE> audioData;
+    WAVEFORMATEX waveFormat;
+    std::string soundName = "test"; // sound name
+    if (!LoadWavFile(soundName, audioData, waveFormat)) {
+        ::MessageBox(0, "music - locate - FAILED", 0, 0);
+        return 0;
+    }
+
+    if (!player.Play(audioData, waveFormat)) {
+        ::MessageBox(0, "music - buffer - FAILED", 0, 0);
+        return 0;
+    }
+
+
+
+
     d3d::EnterMsgLoop(Display);
 
     Cleanup();
+    player.Stop();
 
     Device->Release();
 
