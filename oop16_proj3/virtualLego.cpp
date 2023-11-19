@@ -10,14 +10,34 @@
 //        
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "d3dUtility.h"
+
 #include <vector>
 #include <ctime>
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
+#include <iostream>
+#include <fstream>
+#include "d3dUtility.h"
+
+
+//for the sake of sound function
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+
+
+
+
 
 IDirect3DDevice9* Device = NULL;
+
+//this is for music //this is not working
+IXAudio2* g_audioEngine = nullptr;
+IXAudio2SourceVoice* g_sourceVoice = nullptr;
+IXAudio2MasteringVoice* g_masterVoice = nullptr;
+bool isMusicPlaying = false;
+
 
 // window size
 const int Width = 1024;
@@ -159,7 +179,7 @@ public:
             //맞으면 대상 공 삭제
             //버전에 따라 점수 올리거나 속도 올릴 수 있음
             this->setCenter(100, 100, 100);
-            
+
         }
 
     }
@@ -239,13 +259,13 @@ private:
 class CWall {
 
 private:
-	
+
     float					m_x;
-	float					m_z;
-	float                   m_width;
+    float					m_z;
+    float                   m_width;
     float                   m_depth;
-	float					m_height;
-	
+    float					m_height;
+
 public:
     CWall(void)
     {
@@ -257,31 +277,31 @@ public:
     }
     ~CWall(void) {}
 public:
-	int sign(double value) {
-		if (value > 0) return 1;
-		if (value < 0) return -1;
-		return 0;
-	}
+    int sign(double value) {
+        if (value > 0) return 1;
+        if (value < 0) return -1;
+        return 0;
+    }
 
-	D3DXVECTOR3 getCenter(void) const
-	{
-		D3DXVECTOR3 center(m_x, m_height / 2.0f, m_z);
-		return center;
-	}
+    D3DXVECTOR3 getCenter(void) const
+    {
+        D3DXVECTOR3 center(m_x, m_height / 2.0f, m_z);
+        return center;
+    }
     bool create(IDirect3DDevice9* pDevice, float ix, float iz, float iwidth, float iheight, float idepth, D3DXCOLOR color = d3d::WHITE)
     {
         if (NULL == pDevice)
             return false;
-		
-        m_mtrl.Ambient  = color;
-        m_mtrl.Diffuse  = color;
+
+        m_mtrl.Ambient = color;
+        m_mtrl.Diffuse = color;
         m_mtrl.Specular = color;
         m_mtrl.Emissive = d3d::BLACK;
-        m_mtrl.Power    = 5.0f;
-		
+        m_mtrl.Power = 5.0f;
+
         m_width = iwidth;
         m_depth = idepth;
-		
+
         if (FAILED(D3DXCreateBox(pDevice, iwidth, iheight, idepth, &m_pBoundMesh, NULL)))
             return false;
         return true;
@@ -300,7 +320,7 @@ public:
         pDevice->SetTransform(D3DTS_WORLD, &mWorld);
         pDevice->MultiplyTransform(D3DTS_WORLD, &m_mLocal);
         pDevice->SetMaterial(&m_mtrl);
-		m_pBoundMesh->DrawSubset(0);
+        m_pBoundMesh->DrawSubset(0);
     }
     CSphere getCollisionPoint(CSphere& ball) {
         CSphere collisionPoint = ball;
@@ -315,21 +335,21 @@ public:
         return collisionPoint;
     }
 
-	bool hasIntersectedx(CSphere& ball) 
-	{
-		float sphereCenterX = ball.getCenter().x;
-		float wallX = this->m_x;
+    bool hasIntersectedx(CSphere& ball)
+    {
+        float sphereCenterX = ball.getCenter().x;
+        float wallX = this->m_x;
 
-		float distance = abs(sphereCenterX - wallX) - (ball.getRadius()+0.1);
-		return distance <= 0;
-	}
-     
+        float distance = abs(sphereCenterX - wallX) - (ball.getRadius() + 0.1);
+        return distance <= 0;
+    }
+
     bool hasIntersectedz(CSphere& ball)
     {
         float sphereCenterZ = ball.getCenter().z;
         float wallZ = this->m_z;
 
-        float distance = abs(sphereCenterZ - wallZ) - (ball.getRadius()+0.1);
+        float distance = abs(sphereCenterZ - wallZ) - (ball.getRadius() + 0.1);
         return distance <= 0;
     }
 
@@ -344,60 +364,60 @@ public:
     }
 
 
-	void hitByx(CSphere& ball) 
-	{
-		const float someSmallDistance = 0.000001;
-		if (!this->hasIntersectedx(ball))
-			return;
+    void hitByx(CSphere& ball)
+    {
+        const float someSmallDistance = 0.000001;
+        if (!this->hasIntersectedx(ball))
+            return;
 
         CSphere cp = getCollisionPoint(ball);
-		D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
+        D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
 
-		D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
-		D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
-        
-		ball.setPower(reflection.x, reflection.z);
+        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
+        D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+
+        ball.setPower(reflection.x, reflection.z);
         ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
-	}    
+    }
 
-    
-	void hitByz(CSphere& ball)
-	{
-		const float someSmallDistance = 0.00005;
-		if (!this->hasIntersectedz(ball))
-			return;
+
+    void hitByz(CSphere& ball)
+    {
+        const float someSmallDistance = 0.00005;
+        if (!this->hasIntersectedz(ball))
+            return;
 
         CSphere cp = getCollisionPoint(ball);
-		D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
+        D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
 
-		D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
-		D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
+        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
+        D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
 
-		ball.setPower(reflection.x, reflection.z);
+        ball.setPower(reflection.x, reflection.z);
         ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
-	}
+    }
 
-	
-	void setPosition(float x, float y, float z)
-	{
-		D3DXMATRIX m;
-		this->m_x = x;
-		this->m_z = z;
 
-		D3DXMatrixTranslation(&m, x, y, z);
-		setLocalTransform(m);
-	}
-	
+    void setPosition(float x, float y, float z)
+    {
+        D3DXMATRIX m;
+        this->m_x = x;
+        this->m_z = z;
+
+        D3DXMatrixTranslation(&m, x, y, z);
+        setLocalTransform(m);
+    }
+
     float getHeight(void) const { return M_HEIGHT; }
-	
-	
-	
-private :
+
+
+
+private:
     void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
-	
-	D3DXMATRIX              m_mLocal;
+
+    D3DXMATRIX              m_mLocal;
     D3DMATERIAL9            m_mtrl;
-    ID3DXMesh*              m_pBoundMesh;
+    ID3DXMesh* m_pBoundMesh;
 };
 
 // -----------------------------------------------------------------------------
@@ -488,6 +508,48 @@ private:
     d3d::BoundingSphere m_bound;
 };
 
+// -----------------------------------------------------------------------------
+// music buffer
+// -----------------------------------------------------------------------------
+
+//alternate mmsystem music function
+////////////////////////////////
+//replace playMusic function with this for switching music
+/*bool PlayWavFile(const std::string& soundName) {
+    // Construct the file path
+    std::string filePath = "Music/" + soundName + ".wav";
+
+    // Play the WAV file
+    if (PlaySound(TEXT(filePath.c_str()), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP)) {
+        std::cout << "Playing: " << filePath << std::endl;
+        return true;
+    }
+    else {
+        std::cerr << "Failed to play WAV file: " << filePath << std::endl;
+        return false;
+    }
+}   */
+
+bool playMusic(const std::string& songName) {
+    std::string filePath = "Music/" + songName + ".wav";
+    if (PlaySound(TEXT(filePath.c_str()), NULL, SND_FILENAME | SND_ASYNC)) {
+        isMusicPlaying = true;
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+//this is to stop music
+void stopMusic() {
+    PlaySound(NULL, NULL, 0);
+    isMusicPlaying = false;
+}
+
+
+
+
+
 
 // -----------------------------------------------------------------------------
 // Global variables
@@ -576,8 +638,11 @@ bool Setup()
     Device->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
 
     g_light.setLight(Device, g_mWorld);
+
+
     return true;
 }
+
 
 void Cleanup(void)
 {
@@ -653,6 +718,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case VK_ESCAPE:
             ::DestroyWindow(hwnd);
             break;
+
         case VK_RETURN:
             if (NULL != Device) {
                 wire = !wire;
@@ -660,23 +726,50 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     (wire ? D3DFILL_WIREFRAME : D3DFILL_SOLID));
             }
             break;
-        case VK_SPACE:
 
+        case VK_SPACE:
+        {
             D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
-            D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
-            double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
-                pow(targetpos.z - whitepos.z, 2)));		// 기본 1 사분면
-            if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 사분면
+            D3DXVECTOR3 whitepos = g_sphere[3].getCenter();
+
+            double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2))); // 기본 1 사분면
+            if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }  //4 사분면
             if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 사분면
             if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0) { theta = PI + theta; } // 3 사분면
+
             double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
             g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
-
             break;
+        }
 
+        case VK_TAB: // Key 'TAB' pressed
+        {
+            if (isMusicPlaying)
+            {
+                stopMusic();
+            }
+            else {
+                playMusic("test");
+            }
+            break;
+        }
         }
         break;
+
+        /////////////////////////////////////////
+        //this is for switching song
+        //////////////////////////////////////////////
+        /*case VK_TAB: // Key 'TAB' pressed
+        {
+            // Play a new song, which stops the current song automatically
+            //handleMusicKeyAction(hwnd);
+            PlayWavFile("test");
+            break;
+        }
+        }
+        break;*/
     }
+
 
     case WM_MOUSEMOVE:
     {
@@ -755,9 +848,20 @@ int WINAPI WinMain(HINSTANCE hinstance,
         return 0;
     }
 
-    d3d::EnterMsgLoop(Display);
+    /*PlayWavFile("wow");*/ //this is for switching music
 
+    if (!playMusic("test"))
+    {
+        ::MessageBox(0, "music - FAILED", 0, 0);
+    }
+
+  
+    
+
+
+    d3d::EnterMsgLoop(Display);
     Cleanup();
+    
 
     Device->Release();
 
