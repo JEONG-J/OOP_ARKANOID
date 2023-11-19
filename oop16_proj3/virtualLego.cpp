@@ -21,13 +21,23 @@
 #include "d3dUtility.h"
 
 
+//for the sake of sound function
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+
+
+
+
 
 IDirect3DDevice9* Device = NULL;
 
-//this is for music
+//this is for music //this is not working
 IXAudio2* g_audioEngine = nullptr;
 IXAudio2SourceVoice* g_sourceVoice = nullptr;
 IXAudio2MasteringVoice* g_masterVoice = nullptr;
+bool isMusicPlaying = false;
+
 
 // window size
 const int Width = 1024;
@@ -502,141 +512,41 @@ private:
 // music buffer
 // -----------------------------------------------------------------------------
 
-bool LoadWavFile(const std::string& soundName, std::vector<BYTE>& audioData, WAVEFORMATEX& wfx) {
+//alternate mmsystem music function
+////////////////////////////////
+//replace playMusic function with this for switching music
+/*bool PlayWavFile(const std::string& soundName) {
     // Construct the file path
     std::string filePath = "Music/" + soundName + ".wav";
 
-    // Open the file
-    std::ifstream file(filePath, std::ios::binary);
-    if (!file) {
-        std::cerr << "Failed to open WAV file: " << filePath << std::endl;
-        ::MessageBox(0, "Failed to open WAV file:", 0, 0);
-
+    // Play the WAV file
+    if (PlaySound(TEXT(filePath.c_str()), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP)) {
+        std::cout << "Playing: " << filePath << std::endl;
+        return true;
+    }
+    else {
+        std::cerr << "Failed to play WAV file: " << filePath << std::endl;
         return false;
     }
+}   */
 
-    // Read the RIFF header
-    char riffHeader[12];
-    file.read(riffHeader, sizeof(riffHeader));
-    if (strncmp(riffHeader, "RIFF", 4) != 0 || strncmp(riffHeader + 8, "WAVE", 4) != 0) {
-        std::cerr << "Invalid WAV file" << std::endl;
-        ::MessageBox(0, "Invalid WAV file:", 0, 0);
-
+bool playMusic(const std::string& songName) {
+    std::string filePath = "Music/" + songName + ".wav";
+    if (PlaySound(TEXT(filePath.c_str()), NULL, SND_FILENAME | SND_ASYNC)) {
+        isMusicPlaying = true;
+        return true;
+    }
+    else {
         return false;
     }
-
-    // Read chunks until 'fmt ' chunk is found
-    char chunkHeader[8];
-    while (true) {
-        file.read(chunkHeader, sizeof(chunkHeader));
-        if (strncmp(chunkHeader, "fmt ", 4) == 0) break;
-        // Skip chunk data
-        file.seekg(*(int*)(chunkHeader + 4), std::ios::cur);
-    }
-
-    // Read 'fmt ' chunk
-    file.read((char*)&wfx, sizeof(WAVEFORMATEX));
-    file.seekg(*(int*)(chunkHeader + 4) - sizeof(WAVEFORMATEX), std::ios::cur);
-
-    // Read chunks until 'data' chunk is found
-    while (true) {
-        file.read(chunkHeader, sizeof(chunkHeader));
-        if (strncmp(chunkHeader, "data", 4) == 0) break;
-        // Skip chunk data
-        file.seekg(*(int*)(chunkHeader + 4), std::ios::cur);
-    }
-
-    int dataSize = *(int*)(chunkHeader + 4);
-    audioData.resize(dataSize);
-    file.read((char*)audioData.data(), dataSize);
-
-    return true;
+}
+//this is to stop music
+void stopMusic() {
+    PlaySound(NULL, NULL, 0);
+    isMusicPlaying = false;
 }
 
-// -----------------------------------------------------------------------------
-// Music class
-// -----------------------------------------------------------------------------
-class AudioPlayer {
-private:
-    IXAudio2* audioEngine = nullptr;
-    IXAudio2SourceVoice* sourceVoice = nullptr;
-    IXAudio2MasteringVoice* masterVoice = nullptr;
 
-public:
-    AudioPlayer() : audioEngine(nullptr), sourceVoice(nullptr), masterVoice(nullptr) {}
-
-    ~AudioPlayer() {
-        Cleanup();
-    }
-
-    bool Initialize() {
-        HRESULT hr = XAudio2Create(&audioEngine, 0, XAUDIO2_DEFAULT_PROCESSOR);
-        if (FAILED(hr)) {
-            std::cerr << "Error initializing XAudio2 engine" << std::endl;
-            return false;
-        }
-
-        hr = audioEngine->CreateMasteringVoice(&masterVoice);
-        if (FAILED(hr)) {
-            std::cerr << "Error creating mastering voice" << std::endl;
-            return false;
-        }
-
-        return true;
-    }
-
-    bool Play(const std::vector<BYTE>& audioData, const WAVEFORMATEX& waveFormat) {
-        XAUDIO2_BUFFER buffer = { 0 };
-        buffer.AudioBytes = audioData.size();
-        buffer.pAudioData = audioData.data();
-        buffer.Flags = XAUDIO2_END_OF_STREAM; // Indicates the end of the buffer
-
-        HRESULT hr = audioEngine->CreateSourceVoice(&sourceVoice, &waveFormat);
-        if (FAILED(hr)) {
-            std::cerr << "Error creating source voice" << std::endl;
-            return false;
-        }
-
-        hr = sourceVoice->SubmitSourceBuffer(&buffer);
-        if (FAILED(hr)) {
-            std::cerr << "Error submitting source buffer" << std::endl;
-            return false;
-        }
-
-        hr = sourceVoice->Start(0);
-        if (FAILED(hr)) {
-            std::cerr << "Error starting playback" << std::endl;
-            return false;
-        }
-
-        return true;
-    }
-
-
-    void Stop() {
-        if (sourceVoice) {
-            sourceVoice->Stop(0);
-            sourceVoice->FlushSourceBuffers();
-        }
-    }
-
-    void Cleanup() {
-        if (sourceVoice) {
-            sourceVoice->DestroyVoice();
-            sourceVoice = nullptr;
-        }
-
-        if (masterVoice) {
-            masterVoice->DestroyVoice();
-            masterVoice = nullptr;
-        }
-
-        if (audioEngine) {
-            audioEngine->Release();
-            audioEngine = nullptr;
-        }
-    }
-};
 
 
 
@@ -808,6 +718,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case VK_ESCAPE:
             ::DestroyWindow(hwnd);
             break;
+
         case VK_RETURN:
             if (NULL != Device) {
                 wire = !wire;
@@ -815,23 +726,50 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     (wire ? D3DFILL_WIREFRAME : D3DFILL_SOLID));
             }
             break;
-        case VK_SPACE:
 
+        case VK_SPACE:
+        {
             D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
-            D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
-            double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
-                pow(targetpos.z - whitepos.z, 2)));		// 기본 1 사분면
-            if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 사분면
+            D3DXVECTOR3 whitepos = g_sphere[3].getCenter();
+
+            double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2))); // 기본 1 사분면
+            if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }  //4 사분면
             if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 사분면
             if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0) { theta = PI + theta; } // 3 사분면
+
             double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
             g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
-
             break;
+        }
 
+        case VK_TAB: // Key 'TAB' pressed
+        {
+            if (isMusicPlaying)
+            {
+                stopMusic();
+            }
+            else {
+                playMusic("wow");
+            }
+            break;
+        }
         }
         break;
+
+        /////////////////////////////////////////
+        //this is for switching song
+        //////////////////////////////////////////////
+        /*case VK_TAB: // Key 'TAB' pressed
+        {
+            // Play a new song, which stops the current song automatically
+            //handleMusicKeyAction(hwnd);
+            PlayWavFile("test");
+            break;
+        }
+        }
+        break;*/
     }
+
 
     case WM_MOUSEMOVE:
     {
@@ -910,32 +848,18 @@ int WINAPI WinMain(HINSTANCE hinstance,
         return 0;
     }
 
-    //music part
-    AudioPlayer player;
+    /*PlayWavFile("wow");*/ //this is for switching music
 
-    if (!player.Initialize())
+    if (!playMusic("wow"))
     {
         ::MessageBox(0, "music - FAILED", 0, 0);
-        return 0;
-    }
-    std::vector<BYTE> audioData;
-    WAVEFORMATEX waveFormat;
-    std::string soundName = "test"; // sound name
-    if (!LoadWavFile(soundName, audioData, waveFormat)) {
-        ::MessageBox(0, "music - locate - FAILED", 0, 0);
-        return 0;
     }
 
-    if (!player.Play(audioData, waveFormat)) {
-        ::MessageBox(0, "music - buffer - FAILED", 0, 0);
-        return 0;
-    }
-
-
+  
+    
 
 
     d3d::EnterMsgLoop(Display);
-    player.Stop();
     Cleanup();
     
 
