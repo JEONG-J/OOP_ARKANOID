@@ -749,7 +749,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 stopMusic();
             }
             else {
-                playMusic("wow");
+                playMusic("test");
             }
             break;
         }
@@ -850,7 +850,7 @@ int WINAPI WinMain(HINSTANCE hinstance,
 
     /*PlayWavFile("wow");*/ //this is for switching music
 
-    if (!playMusic("wow"))
+    if (!playMusic("test"))
     {
         ::MessageBox(0, "music - FAILED", 0, 0);
     }
