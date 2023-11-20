@@ -30,6 +30,8 @@ IDirect3DDevice9* Device = NULL;
 // 추가추가추가추가
 // -----------------------------------------------------------------------------
 
+int ball_cnt = 0;
+
 ID3DXFont* hud_Font = NULL;        
 // 시작화면, 종료화면
 ID3DXSprite* start_Sprite = NULL;
@@ -63,7 +65,7 @@ const float spherePos[64][2] = {
 };
 */
 
-const float empty_sphere[64][2] = {};
+const float spherePos0[64][2] = {}; // 테스트용도!!!!
 
 const float spherePos1[64][2] = {
      {-1.75f, 1.75f}, {-1.25f, 1.75f}, {-0.75f, 1.75f}, {-0.25f, 1.75f}, {0.25f, 1.75f}, {0.75f, 1.75f}, {1.25f, 1.75f}, {1.75f, 1.75f},
@@ -189,6 +191,7 @@ public:
         m_pSphereMesh->DrawSubset(0);
     }
 
+
     bool hasIntersected(CSphere& ball) // 두 공이 충돌 했는지 확인
     {
         D3DXVECTOR3 cord = this->getCenter();
@@ -226,6 +229,9 @@ public:
     {
         // Check if the white ball and blue ball have collided
         if (whiteBall.hasIntersected(blueBall)) {
+            // Calculate the original speed of the white ball
+            float originalSpeed = sqrt(pow(whiteBall.getVelocity_X(), 2) + pow(whiteBall.getVelocity_Z(), 2));
+
             // Calculate the collision direction
             D3DXVECTOR3 collisionDirection = blueBall.getCenter() - whiteBall.getCenter();
             D3DXVec3Normalize(&collisionDirection, &collisionDirection);
@@ -235,8 +241,8 @@ public:
             D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &collisionDirection) * collisionDirection;
             D3DXVec3Normalize(&reflection, &reflection);
 
-            // Set the new velocity of the white ball based on the reflection direction
-            whiteBall.setPower(reflection.x, reflection.z);
+            // Set the new velocity of the white ball based on the reflection direction, maintaining the original speed
+            whiteBall.setPower(reflection.x * originalSpeed, reflection.z * originalSpeed);
         }
     }
 
@@ -265,7 +271,7 @@ public:
             this->setCenter(tX, cord.y, tZ);
         }
         else { this->setPower(0, 0); }
-        //this->setPower(this->getVelocity_X() * DECREASE_RATE, this->getVelocity_Z() * DECREASE_RATE);
+        //this->setPower(this->getVelocity_X() * DECREASE_RATE, this->getVelosetupcity_Z() * DECREASE_RATE);
         double rate = 1 - (1 - DECREASE_RATE) * timeDiff * 400;
         if (rate < 0)
             rate = 0;
@@ -614,18 +620,18 @@ void UpdateRankings(const Ranking& new_rank) {
 }
 
 void DisplayRankings(ID3DXFont* font, const std::vector<Ranking>& rankings) {
-    RECT rc;
-    SetRect(&rc, 270, 250, 0, 0); // 위치
+    RECT rcc;
+    SetRect(&rcc, 270, 250, 0, 0); // 위치
 
 
 
     for (size_t i = 0; i < 10; ++i) {
-        char str[50];
+        char strr[100];
         if (i < rankings.size()) {
-            sprintf_s(str, "%02d               %d              %03d", i + 1, rankings[i].stage, rankings[i].score);
+            sprintf_s(strr, "%02d               %d              %03d", i + 1, rankings[i].stage, rankings[i].score);
         }
         else {
-            sprintf_s(str, "%02d               0              000", i + 1);
+            sprintf_s(strr, "%02d               0              000", i + 1);
         }
 
         D3DCOLOR color;
@@ -636,8 +642,8 @@ void DisplayRankings(ID3DXFont* font, const std::vector<Ranking>& rankings) {
             color = D3DCOLOR_XRGB(255, 255, 255);
         }
 
-        font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, color);
-        rc.top += 50; // 줄바꿈 너비
+        font->DrawText(NULL, strr, -1, &rcc, DT_NOCLIP, color);
+        rcc.top += 50; // 줄바꿈 너비
     }
 }
 
@@ -719,28 +725,27 @@ CSphere	whiteball; // 발사될 공
 double g_camera_pos[3] = { 0.0, 5.0, -8.0 };
 
 
-TCHAR str[100];
+TCHAR str[150];
 RECT rc;
 
 
 int g_stage = 1;
 int g_life = 5;
 int g_score = 0;
-int g_combo = 0;
 int g_phase = 0; // -1: 처음실행 0: 시작화면, 1: 게임화면, 2: 랭킹화면
 
+bool firstrun = true;
+bool g_readyball = true;
+bool g_readyfor = false;
 bool g_ready0 = false;
 bool g_ready1 = false;
+bool g_ready2 = false;
+bool g_ready3 = false;
+
 int frame_1 = 0;
 int frame_2 = 0;
-int frame_3 = 0;
-int frame_4 = 0;
 
-bool stage1 = false;
-bool stage2 = false;
-bool stage3 = false;
-bool stage4 = false;
-bool stage5 = false;
+
 
 
 // -----------------------------------------------------------------------------
@@ -750,6 +755,19 @@ bool stage5 = false;
 
 void destroyAllLegoBlock(void)
 {
+    // Destroy all sphere objects
+    for (int i = 0; i < 64; ++i) {
+        g_sphere[i].destroy();
+    }
+
+    // Destroy all lego wall objects
+    for (int i = 0; i < 3; ++i) {
+        g_legowall[i].destroy();
+    }
+
+    // Destroy the lego plane
+    g_legoPlane.destroy();
+
 }
 
 // initialization
@@ -810,10 +828,10 @@ bool Setup()
     if (false == g_legowall[2].create(Device, -1, -1, 0.12f, 0.3f, 6.24f, color_puang2)) return false;
     g_legowall[2].setPosition(-4.56f, 0.12f, 0.0f);
 
-    // create four balls and set the position
+    // create balls and set the position
     for (i = 0; i < 64; i++) {
         if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
-        g_sphere[i].setCenter(empty_sphere[i][0], (float)M_RADIUS, empty_sphere[i][1]);
+        g_sphere[i].setCenter(spherePos0[i][0], (float)M_RADIUS, spherePos0[i][1]);
         g_sphere[i].setPower(0, 0);
     }
 
@@ -864,58 +882,38 @@ bool Setup()
     return true;
 }
 
-bool Setup_stage()
-{
-
-
-    int i;
-
-    // 스테이지 별 공모양
-    switch (g_stage) {
+void Setup_Stage(int stage) {
+    // This function sets up the balls based on the given stage number.
+    switch (stage) {
     case 1:
-        for (i = 0; i < 64; i++) {
-            if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
+        for (int i = 0; i < 64; i++) {
+            if (false == g_sphere[i].create(Device, sphereColor[0])) return;
             g_sphere[i].setCenter(spherePos1[i][0], (float)M_RADIUS, spherePos1[i][1]);
             g_sphere[i].setPower(0, 0);
+            g_readyball = true;
         }
         break;
-
     case 2:
-        for (i = 0; i < 64; i++) {
-            if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
+        for (int i = 0; i < 64; i++) {
+            if (false == g_sphere[i].create(Device, sphereColor[0])) return;
             g_sphere[i].setCenter(spherePos2[i][0], (float)M_RADIUS, spherePos2[i][1]);
             g_sphere[i].setPower(0, 0);
+            g_readyball = true;
         }
         break;
-
     case 3:
-        for (i = 0; i < 64; i++) {
-            if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
+        for (int i = 0; i < 64; i++) {
+            if (false == g_sphere[i].create(Device, sphereColor[0])) return;
             g_sphere[i].setCenter(spherePos3[i][0], (float)M_RADIUS, spherePos3[i][1]);
             g_sphere[i].setPower(0, 0);
+            g_readyball = true;
         }
         break;
 
-    case 4:
-        
+    default:
+        // Default setup or error handling
         break;
-
-    case 5:
-
-        break;
-
     }
-
-
-    // create blue ball for set direction
-    if (false == g_target_blueball.create(Device, d3d::BLUE)) return false;
-    g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
-
-
-    if (false == whiteball.create(Device, d3d::WHITE)) return false;
-    whiteball.setCenter(3.7f, (float)M_RADIUS, 0.f);
-
-    return true;
 }
 
 
@@ -927,6 +925,8 @@ void Cleanup(void)
     for (int i = 0; i < 3; i++) {
         g_legowall[i].destroy();
     }
+
+    g_legoPlane.destroy();
 
     if (hud_Font) {
         hud_Font->Release();
@@ -953,6 +953,14 @@ bool Display(float timeDelta)
     int i = 0;
     int j = 0;
 
+    static int currentStage = -1;
+    static int currentLife = 5;
+
+    // 스테이지 바뀌면 공배치 변경
+    if (g_stage != currentStage && firstrun == false) {
+        Setup_Stage(g_stage);
+        currentStage = g_stage; // Update the current stage tracker
+    }
 
     if (Device)
     {
@@ -980,6 +988,8 @@ bool Display(float timeDelta)
                 g_sphere[i].hitBy(whiteball);
                 g_sphere[i].setCenter(-15.0f, M_RADIUS, -15.0f);
                 g_sphere[i].setPower(.0f, .0f);
+                ball_cnt++;
+                g_score++;
             }
         }
 
@@ -1014,36 +1024,40 @@ bool Display(float timeDelta)
 
             // press space to continue 
 
-
-            sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                     Press space to start!!!");
-            // 정보창 생성
-            hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+            if (g_ready0 == true) {
+                sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                     Press space to start!!!");
+                // 정보창 생성
+                hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+                g_ready0 = false;
+                Sleep(100);
+            }
+            else if (g_ready0 == false){
+                g_ready0 = true;
+                Sleep(100);
+            }
+            
 
 
             break;
 
         case 1:  // 시작화면, 올라감
-            if (frame_2 < 115) {
+            if (frame_1 < 115) {
                 if (start_Sprite && start_Texture) {
                     start_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
                     start_Sprite->Draw(start_Texture, NULL, NULL, &spritePos_start, D3DCOLOR_XRGB(255, 255, 255));
                     start_Sprite->End();
                     eff_out(spritePos_start);
-                    frame_2++;
+                    frame_1++;
                 }
             }
-            else if(frame_2 == 115) {
+            else if(frame_1 == 115) {
                 spritePos_start.y = -1024.0f;
-                frame_2++;
+                frame_1++;
             }
             else {
-
-
-                sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d\n\n\n\n\n\n\n\n                          Press Space!!!", g_stage, g_score, g_combo, g_life);
-
-
+                sprintf_s(str, "Stage: %d     Score: %03d\nLife:    %d\n\n\n\n\n\n\n\n\n\n\n\n                          Press Space!!!", g_stage, g_score, g_life);
                 hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
-
+                g_readyfor = true;
                 g_ready1 = true;
                 break;
             }
@@ -1053,81 +1067,102 @@ bool Display(float timeDelta)
         case 2:  // 게임 진행 화면, 스테이지
 
 
-            sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d", g_stage, g_score, g_combo, g_life);
+            sprintf_s(str, "Stage: %d     Score: %03d\nLife:    %d\n%d %d", g_stage, g_score, g_life, ball_cnt, g_phase);
 
             // 정보창 생성
             hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+
+            // 스테이지 별로 기능 구현
+            if (g_stage == 1 && ball_cnt == 64) {
+                g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
+                whiteball.setCenter(3.7f, (float)M_RADIUS, 0.0f);
+                whiteball.setPower(0, 0);
+                g_readyball = true;
+                firstrun = false;
+                g_stage = 2;
+                ball_cnt = 0;
+            }
+            else if (g_stage == 2 && ball_cnt == 64) {
+                g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
+                whiteball.setCenter(3.7f, (float)M_RADIUS, 0.0f);
+                whiteball.setPower(0, 0);
+                g_readyball = true;
+                firstrun = false;
+                g_stage = 3;
+                ball_cnt = 0;
+            }
+            else if (g_stage == 3 && ball_cnt == 64) {
+                g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
+                whiteball.setCenter(3.7f, (float)M_RADIUS, 0.0f);
+                whiteball.setPower(0, 0);
+                g_readyball = false;
+                firstrun = false;
+                if (g_ready2 == true) {
+                    sprintf_s(str, "\n\n\n\n\n\n\n\n\n                            Good Job :)");
+                    hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+                    sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                          Press Space!!!");
+                    hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+                    g_ready2 = false;
+                    Sleep(200);
+                }
+                else if (g_ready2 == false) {
+                    sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                          Press Space!!!");
+                    hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+                    g_ready2 = true;
+                    Sleep(200);
+                }
+            }
+            else if (g_life == 0) {  // 라이프 다 끝났을 때
+                g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
+                whiteball.setCenter(3.7f, (float)M_RADIUS, 0.0f);
+                whiteball.setPower(0, 0);
+                g_readyball = false;
+                firstrun = false;
+                if (g_ready2 == true) {
+                    sprintf_s(str, "\n\n\n\n\n\n\n\n\n                            Try again :(");
+                    hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+                    sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                          Press Space!!!");
+                    hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+                    g_ready2 = false;
+                    Sleep(200);
+                }
+                else if (g_ready2 == false) {
+                    sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                          Press Space!!!");
+                    hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+                    g_ready2 = true;
+                    Sleep(200);
+                }
+            }
+            else if (g_life != currentLife) {  // 라이프 감소시
+                g_readyball = true;
+                currentLife = g_life;
+            }
+
             break;
 
-            // 라이프가 0이 되었을때도 구현하기*****************************
-
-            // 스테이지 별로 다른 출력
-            switch (g_stage) {
-            case 1:
-                if (stage1 == false)
-                {
-                    Setup_stage();
-					stage1 = true;
-				}
-                break;
-
-            case 2:
-                if (stage2 == false)
-                {
-                    Setup_stage();
-                    stage2 = true;
-                }
-                break;
-
-            case 3:
-                if (stage3 == false)
-                {
-                    Setup_stage();
-                    stage3 = true;
-                }
-                break;
-
-            case 4:
-                if (stage4 == false)
-                {
-                    Setup_stage();
-                    stage4 = true;
-                }
-                break;
-
-            case 5:
-                if (stage5 == false)
-                {
-                    Setup_stage();
-                    stage5 = true;
-                }
-                break;
-            }
 
         case 3:   // 랭킹화면 내려옴
 
-            if (frame_3 < 115) {
+            if (frame_2 < 115) {
                 if (rank_Sprite && rank_Texture) {
                     rank_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
                     rank_Sprite->Draw(rank_Texture, NULL, NULL, &spritePos_rank, D3DCOLOR_XRGB(255, 255, 255));
                     rank_Sprite->End();
                     eff_in(spritePos_rank);
-                    frame_3++;
+                    frame_2++;
                 }
             }
             else {
                 rank_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
                 rank_Sprite->Draw(rank_Texture, NULL, NULL, &spritePos_rank, D3DCOLOR_XRGB(255, 255, 255));
                 rank_Sprite->End();
-                UpdateRankings(new_ranking);
+
+                if (g_ready3 == true) {
+                    UpdateRankings(new_ranking);
+                    g_ready3 = false;
+                }
                 DisplayRankings(hud_Font, g_rankings);
-
-                // 정보창
-                
                 sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                          Press Space!!!");
-
-
-                // 정보창 생성
                 hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
             }
             break;
@@ -1141,6 +1176,9 @@ bool Display(float timeDelta)
         if (whiteball.getCenter().x >= g_target_blueball.getCenter().x) {
             //::MessageBox(0, "Game Over!", "Game Over", MB_OK); //  아직 필요없음
             //::PostQuitMessage(0);  // exit of the program -> change to the life reduction
+            g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
+            whiteball.setCenter(3.7f, (float)M_RADIUS, 0.0f);
+            whiteball.setPower(0, 0);
             g_life -= 1;
             // 공 제자리에 옮기기
 
@@ -1192,40 +1230,63 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (g_phase == 0) {
                 g_phase += 1;
             }
-            else if (g_phase == 1 && g_ready1 == true) {
+            else if (g_phase == 1 && g_ready1 == true && g_readyball == true) {
                 whiteball.setPower(-2, 0);
                 g_phase += 1;
+                g_readyball = false;
             }
-            else if (g_phase == 2) {
+            else if (g_phase == 2 && g_readyfor == true && g_life == 0) {
+                ball_cnt = 0;
+                g_phase = 3;
+                g_readyball = false;
+                g_ready3 = true;
+                new_ranking.stage = g_stage;
+                new_ranking.score = g_score;
+            }
+            else if (g_phase == 2 && g_readyfor == true && g_readyball == true && g_stage == 1) {
                 whiteball.setPower(-2, 0);
+                g_readyball = false;
+            }
+            else if (g_phase == 2 && g_readyfor == true && g_readyball == true && g_stage == 2) {
+                whiteball.setPower(-4, 0);
+                g_readyball = false;
+            }
+            else if (g_phase == 2 && g_readyfor == true && g_readyball == false && g_stage == 3 && ball_cnt == 64) {
+                ball_cnt = 0;
+                g_phase = 3;
+                g_readyball = false;
+                g_ready3 = true;
+                new_ranking.stage = g_stage;
+                new_ranking.score = g_score;
+            }
+            else if (g_phase == 2 && g_readyfor == true && g_readyball == true && g_stage == 3) {
+                whiteball.setPower(-8, 0);
+                g_readyball = false;
             }
             else if (g_phase == 3) {
-                whiteball.setPower(-2, 0);
-
-
                 // 변수 초기화 하고 시작화면 내려오기
+                new_ranking = { 0, 0 };
+                ranked = 10;
+
                 g_phase = 0;
                 g_stage = 1;
                 g_life = 5;
                 g_score = 0;
-                g_combo = 0;
 
 
+                g_readyball = true;
+                g_readyfor = false;
+                g_ready0 = false;
                 g_ready1 = false;
+                g_ready2 = false;
+                g_ready3 = false;
+
                 frame_1 = 0;
                 frame_2 = 0;
-                frame_3 = 0;
-                frame_4 = 0;
 
-                stage1 = true;
-                stage2 = false;
-                stage3 = false;
-                stage4 = false;
-                stage5 = false;
 
                 spritePos_start.y =  0.0f;
-
-
+                spritePos_rank.y = -1024.0f;
 
             }
             break;
@@ -1247,8 +1308,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case VK_F5:
             frame_1 = 0;
             frame_2 = 0;
-            frame_3 = 0;
-            frame_4 = 0;
+
             break;
       
     }
@@ -1262,7 +1322,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         int new_y = HIWORD(lParam);
         float dx;
         float dy;
-        
+        /*
         if (LOWORD(wParam) & MK_LBUTTON) {
 
             if (isReset) {
@@ -1289,26 +1349,33 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             old_x = new_x;
             old_y = new_y;
         }
-        else {
-            isReset = true;
+        */
+        if (LOWORD(wParam) & MK_LBUTTON) {
 
-            if (LOWORD(wParam) & MK_RBUTTON) {
-                dx = (old_x - new_x);// * 0.01f;
-                dy = (old_y - new_y);// * 0.01f;
-
-                D3DXVECTOR3 coord3d = g_target_blueball.getCenter();
-                g_target_blueball.setCenter(coord3d.x, coord3d.y, coord3d.z + dy * 0.007f);  // allows blue ball to move in the linear line of z axis
+            if (isReset) {
+                isReset = false;
             }
-            old_x = new_x;
-            old_y = new_y;
 
-            move = WORLD_MOVE;
+            dx = (old_x - new_x);// * 0.01f;
+            dy = (old_y - new_y);// * 0.01f;
+
+            D3DXVECTOR3 coord3d = g_target_blueball.getCenter();
+            g_target_blueball.setCenter(coord3d.x, coord3d.y, coord3d.z - dx * 0.01f);   // allows blue ball to move in the linear line of z axis
+
+            if (g_readyball == true) {
+                // make the white ball move in the direction of the blue ball
+                D3DXVECTOR3 coord3d2 = whiteball.getCenter();
+                whiteball.setCenter(coord3d2.x, coord3d2.y, coord3d2.z - dx * 0.01f);
+            }
         }
-        break;
+        old_x = new_x;
+        old_y = new_y;
+
+        move = WORLD_MOVE;
+    }
+    break;
 
     }
-    }
-
     return ::DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
