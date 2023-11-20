@@ -63,7 +63,7 @@ const float spherePos[64][2] = {
 };
 */
 
-const float spherePos[64][2] = {
+const float spherePos1[64][2] = {
      {-1.75f, 1.75f}, {-1.25f, 1.75f}, {-0.75f, 1.75f}, {-0.25f, 1.75f}, {0.25f, 1.75f}, {0.75f, 1.75f}, {1.25f, 1.75f}, {1.75f, 1.75f},
     {-1.75f, 1.25f}, {-1.25f, 1.25f}, {-0.75f, 1.25f}, {-0.25f, 1.25f}, {0.25f, 1.25f}, {0.75f, 1.25f}, {1.25f, 1.25f}, {1.75f, 1.25f},
     {-1.75f, 0.75f}, {-1.25f, 0.75f}, {-0.75f, 0.75f}, {-0.25f, 0.75f}, {0.25f, 0.75f}, {0.75f, 0.75f}, {1.25f, 0.75f}, {1.75f, 0.75f},
@@ -76,9 +76,9 @@ const float spherePos[64][2] = {
 };
 
 
-/* 
+
 //공모양
-const float spherePos[64][2] = { {3.2f, 0.0f}, {3.1841f, 0.2788f}, {3.1366f, 0.5548f}, {3.0578f, 0.8253f},
+const float spherePos2[64][2] = { {3.2f, 0.0f}, {3.1841f, 0.2788f}, {3.1366f, 0.5548f}, {3.0578f, 0.8253f},
 {2.9487f, 1.0876f}, {2.8103f, 1.3391f}, {2.6440f, 1.5773f}, {2.4513f, 1.7998f},
 {2.2344f, 2.0044f}, {1.9952f, 2.1891f}, {1.7361f, 2.3521f}, {1.4599f, 2.4916f},
 {1.1691f, 2.6064f}, {0.8667f, 2.6953f}, {0.5557f, 2.7575f}, {0.2391f, 2.7922f},
@@ -94,11 +94,11 @@ const float spherePos[64][2] = { {3.2f, 0.0f}, {3.1841f, 0.2788f}, {3.1366f, 0.5
 {1.4599f, -2.4916f}, {1.7361f, -2.3521f}, {1.9952f, -2.1891f}, {2.2344f, -2.0044f},
 {2.4513f, -1.7998f}, {2.6440f, -1.5773f}, {2.8103f, -1.3391f}, {2.9487f, -1.0876f},
 {3.0578f, -0.8253f}, {3.1366f, -0.5548f}, {3.1841f, -0.2788f}, {3.2f, -0.0f} }
-;*/
+;
 
-/*
+
 //사각형
-const float spherePos[64][2] = {
+const float spherePos3[64][2] = {
     {-1.75f, 1.75f}, {-1.25f, 1.75f}, {-0.75f, 1.75f}, {-0.25f, 1.75f}, {0.25f, 1.75f}, {0.75f, 1.75f}, {1.25f, 1.75f}, {1.75f, 1.75f},
     {-1.75f, 1.25f}, {-1.25f, 1.25f}, {-0.75f, 1.25f}, {-0.25f, 1.25f}, {0.25f, 1.25f}, {0.75f, 1.25f}, {1.25f, 1.25f}, {1.75f, 1.25f},
     {-1.75f, 0.75f}, {-1.25f, 0.75f}, {-0.75f, 0.75f}, {-0.25f, 0.75f}, {0.25f, 0.75f}, {0.75f, 0.75f}, {1.25f, 0.75f}, {1.75f, 0.75f},
@@ -107,7 +107,7 @@ const float spherePos[64][2] = {
     {-1.75f, -0.75f}, {-1.25f, -0.75f}, {-0.75f, -0.75f}, {-0.25f, -0.75f}, {0.25f, -0.75f}, {0.75f, -0.75f}, {1.25f, -0.75f}, {1.75f, -0.75f},
     {-1.75f, -1.25f}, {-1.25f, -1.25f}, {-0.75f, -1.25f}, {-0.25f, -1.25f}, {0.25f, -1.25f}, {0.75f, -1.25f}, {1.25f, -1.25f}, {1.75f, -1.25f},
     {-1.75f, -1.75f}, {-1.25f, -1.75f}, {-0.75f, -1.75f}, {-0.25f, -1.75f}, {0.25f, -1.75f}, {0.75f, -1.75f}, {1.25f, -1.75f}, {1.75f, -1.75f}
-};*/
+};
 
 
 
@@ -721,6 +721,8 @@ int g_life = 5;
 int g_score = 0;
 int g_combo = 0;
 int g_phase = -1; // -1: 처음실행 0: 시작화면, 1: 게임화면, 2: 랭킹화면
+
+bool g_ready = false;
 int frame_1 = 0;
 int frame_2 = 0;
 int frame_3 = 0;
@@ -797,7 +799,7 @@ bool Setup()
     // create four balls and set the position
     for (i = 0; i < 64; i++) {
         if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
-        g_sphere[i].setCenter(spherePos[i][0], (float)M_RADIUS, spherePos[i][1]);
+        g_sphere[i].setCenter(spherePos1[i][0], (float)M_RADIUS, spherePos1[i][1]);
         g_sphere[i].setPower(0, 0);
     }
 
@@ -848,7 +850,63 @@ bool Setup()
     return true;
 }
 
-// 추가됨
+bool Setup_stage()
+{
+
+
+    int i;
+
+    // 스테이지 별 공모양
+    switch (g_stage) {
+    case 1:
+        for (i = 0; i < 64; i++) {
+            if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
+            g_sphere[i].setCenter(spherePos1[i][0], (float)M_RADIUS, spherePos1[i][1]);
+            g_sphere[i].setPower(0, 0);
+        }
+        break;
+
+    case 2:
+        for (i = 0; i < 64; i++) {
+            if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
+            g_sphere[i].setCenter(spherePos2[i][0], (float)M_RADIUS, spherePos2[i][1]);
+            g_sphere[i].setPower(0, 0);
+        }
+        break;
+
+    case 3:
+        for (i = 0; i < 64; i++) {
+            if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
+            g_sphere[i].setCenter(spherePos3[i][0], (float)M_RADIUS, spherePos3[i][1]);
+            g_sphere[i].setPower(0, 0);
+        }
+        break;
+
+    case 4:
+        
+        break;
+
+    case 5:
+
+        break;
+
+    }
+
+
+    // create blue ball for set direction
+    if (false == g_target_blueball.create(Device, d3d::BLUE)) return false;
+    g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
+
+
+    if (false == whiteball.create(Device, d3d::WHITE)) return false;
+    whiteball.setCenter(3.7f, (float)M_RADIUS, 0.f);
+
+    return true;
+}
+
+
+
+// 여러개 추가됨
 void Cleanup(void)
 {
     g_legoPlane.destroy();
@@ -977,9 +1035,10 @@ bool Display(float timeDelta)
                 frame_2++;
             }
             else {
+
                 // 정보창
-                TCHAR str[50];
-                sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d", g_stage, g_score, g_combo, g_life);
+                TCHAR str[100];
+                sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d\n\n\n\n\n\n\n\n                          Press Space!!!", g_stage, g_score, g_combo, g_life);
 
                 // 글자크기
                 RECT rc;
@@ -987,16 +1046,18 @@ bool Display(float timeDelta)
 
                 // 정보창 생성
                 hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+
+                g_ready = true;
                 break;
             }
             break;
 
-       
-        case 3:  // 게임 진행 화면
+
+        case 2:  // 게임 진행 화면, 스테이지
 
             // 정보창
-            TCHAR str[50];
-            sprintf_s(str, "Stage: %d     Score: %03d\nLife:    %d", g_stage, g_score, g_life);
+            TCHAR str[100];
+            sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d", g_stage, g_score, g_combo, g_life);
 
             // 글자크기
             RECT rc;
@@ -1006,7 +1067,32 @@ bool Display(float timeDelta)
             hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
             break;
 
-        case 7:   // 랭킹표시 내려옴
+            // 라이프가 0이 되었을때도 구현하기*****************************
+
+            // 스테이지 별로 다른 출력
+            switch (g_stage) {
+            case 1:
+                Setup_stage();
+                break;
+
+            case 2:
+                Setup_stage();
+                break;
+
+            case 3:
+                Setup_stage();
+                break;
+
+            case 4:
+                Setup_stage();
+                break;
+
+            case 5:
+                Setup_stage();
+                break;
+            }
+
+        case 3:   // 랭킹화면 내려옴
 
             if (rank_Sprite && rank_Texture) {
                 rank_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
@@ -1019,7 +1105,7 @@ bool Display(float timeDelta)
             DisplayRankings(hud_Font, g_rankings);
             break;
 
-        case 8:  // 랭킹표시 올라감
+        case 4:  // 랭킹화면 올라감
 
             if (frame_4 < 115) {
                 if (rank_Sprite && rank_Texture) {
@@ -1038,7 +1124,7 @@ bool Display(float timeDelta)
             }
             break;
 
-        case 9:  // 변수들 초기화하고 g_phase = 0으로 돌아감
+        case 5:  // 변수들 초기화하고 g_phase = 0으로 돌아감
 			g_stage = 1;
 			g_life = 5;
 			g_score = 0;
@@ -1053,8 +1139,11 @@ bool Display(float timeDelta)
 
         
         if (whiteball.getCenter().x >= g_target_blueball.getCenter().x) {
-            ::MessageBox(0, "Game Over!", "Game Over", MB_OK);
-            ::PostQuitMessage(0);  // exit of the program -> change to the life reduction
+            //::MessageBox(0, "Game Over!", "Game Over", MB_OK); //  아직 필요없음
+            //::PostQuitMessage(0);  // exit of the program -> change to the life reduction
+            g_life -= 1;
+            // 공 제자리에 옮기기
+
         }
         
 
@@ -1099,9 +1188,13 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         case VK_SPACE:
-
-            whiteball.setPower(-2, 0);
-
+            if (g_phase == 1 && g_ready == true) {
+                whiteball.setPower(-2, 0);
+                g_phase += 1;
+            }
+            else if (g_phase == 2) {
+                whiteball.setPower(-2, 0);
+            }
             break;
 
         // 개발자 옵션
