@@ -10,6 +10,7 @@
 //        
 ////////////////////////////////////////////////////////////////////////////////
 
+
 #include "d3dUtility.h"
 #include <vector>
 #include <ctime>
@@ -25,9 +26,63 @@ const int Height = 768;
 
 // There are four balls
 // initialize the position (coordinate) of each ball (ball0 ~ ball3)
-const float spherePos[4][2] = { {-2.7f,0} , {+2.7f,0.9f} , {3.3f,0} , {-2.7f,-1.0f} };
+
+/*
+const float spherePos[64][2] = {
+
+};
+*/
+
+const float spherePos[64][2] = {
+     {-1.75f, 1.75f}, {-1.25f, 1.75f}, {-0.75f, 1.75f}, {-0.25f, 1.75f}, {0.25f, 1.75f}, {0.75f, 1.75f}, {1.25f, 1.75f}, {1.75f, 1.75f},
+    {-1.75f, 1.25f}, {-1.25f, 1.25f}, {-0.75f, 1.25f}, {-0.25f, 1.25f}, {0.25f, 1.25f}, {0.75f, 1.25f}, {1.25f, 1.25f}, {1.75f, 1.25f},
+    {-1.75f, 0.75f}, {-1.25f, 0.75f}, {-0.75f, 0.75f}, {-0.25f, 0.75f}, {0.25f, 0.75f}, {0.75f, 0.75f}, {1.25f, 0.75f}, {1.75f, 0.75f},
+    {-1.75f, 0.25f}, {-1.25f, 0.25f}, {-0.75f, 0.25f}, {-0.25f, 0.25f}, {0.25f, 0.25f}, {0.75f, 0.25f}, {1.25f, 0.25f}, {1.75f, 0.25f},
+    {-1.75f, -0.25f}, {-1.25f, -0.25f}, {-0.75f, -0.25f}, {-0.25f, -0.25f}, {0.25f, -0.25f}, {0.75f, -0.25f}, {1.25f, -0.25f}, {1.75f, -0.25f},
+    {-1.75f, -0.75f}, {-1.25f, -0.75f}, {-0.75f, -0.75f}, {-0.25f, -0.75f}, {0.25f, -0.75f}, {0.75f, -0.75f}, {1.25f, -0.75f}, {1.75f, -0.75f},
+    {-1.75f, -1.25f}, {-1.25f, -1.25f}, {-0.75f, -1.25f}, {-0.25f, -1.25f}, {0.25f, -1.25f}, {0.75f, -1.25f}, {1.25f, -1.25f}, {1.75f, -1.25f},
+    {-1.75f, -1.75f}, {-1.25f, -1.75f}, {-0.75f, -1.75f}, {-0.25f, -1.75f}, {0.25f, -1.75f}, {0.75f, -1.75f}, {1.25f, -1.75f}, {1.75f, -1.75f}
+
+};
+
+
+/* 
+//공모양
+const float spherePos[64][2] = { {3.2f, 0.0f}, {3.1841f, 0.2788f}, {3.1366f, 0.5548f}, {3.0578f, 0.8253f},
+{2.9487f, 1.0876f}, {2.8103f, 1.3391f}, {2.6440f, 1.5773f}, {2.4513f, 1.7998f},
+{2.2344f, 2.0044f}, {1.9952f, 2.1891f}, {1.7361f, 2.3521f}, {1.4599f, 2.4916f},
+{1.1691f, 2.6064f}, {0.8667f, 2.6953f}, {0.5557f, 2.7575f}, {0.2391f, 2.7922f},
+{-0.0798f, 2.7991f}, {-0.3979f, 2.7783f}, {-0.7121f, 2.7298f}, {-1.0192f, 2.6542f},
+{-1.3161f, 2.5522f}, {-1.6f, 2.4249f}, {-1.8680f, 2.2734f}, {-2.1174f, 2.0994f},
+{-2.3458f, 1.9045f}, {-2.5508f, 1.6907f}, {-2.7305f, 1.46f}, {-2.8831f, 1.2149f},
+{-3.0070f, 0.9577f}, {-3.1010f, 0.6909f}, {-3.1643f, 0.4173f}, {-3.1960f, 0.1396f},
+{-3.1960f, -0.1396f}, {-3.1643f, -0.4173f}, {-3.1010f, -0.6909f}, {-3.0070f, -0.9577f},
+{-2.8831f, -1.2149f}, {-2.7305f, -1.46f}, {-2.5508f, -1.6907f}, {-2.3458f, -1.9045f},
+{-2.1174f, -2.0994f}, {-1.8680f, -2.2734f}, {-1.6f, -2.4249f}, {-1.3161f, -2.5522f},
+{-1.0192f, -2.6542f}, {-0.7121f, -2.7298f}, {-0.3979f, -2.7783f}, {-0.0798f, -2.7991f},
+{0.2391f, -2.7922f}, {0.5557f, -2.7575f}, {0.8667f, -2.6953f}, {1.1691f, -2.6064f},
+{1.4599f, -2.4916f}, {1.7361f, -2.3521f}, {1.9952f, -2.1891f}, {2.2344f, -2.0044f},
+{2.4513f, -1.7998f}, {2.6440f, -1.5773f}, {2.8103f, -1.3391f}, {2.9487f, -1.0876f},
+{3.0578f, -0.8253f}, {3.1366f, -0.5548f}, {3.1841f, -0.2788f}, {3.2f, -0.0f} }
+;*/
+
+/*
+//사각형
+const float spherePos[64][2] = {
+    {-1.75f, 1.75f}, {-1.25f, 1.75f}, {-0.75f, 1.75f}, {-0.25f, 1.75f}, {0.25f, 1.75f}, {0.75f, 1.75f}, {1.25f, 1.75f}, {1.75f, 1.75f},
+    {-1.75f, 1.25f}, {-1.25f, 1.25f}, {-0.75f, 1.25f}, {-0.25f, 1.25f}, {0.25f, 1.25f}, {0.75f, 1.25f}, {1.25f, 1.25f}, {1.75f, 1.25f},
+    {-1.75f, 0.75f}, {-1.25f, 0.75f}, {-0.75f, 0.75f}, {-0.25f, 0.75f}, {0.25f, 0.75f}, {0.75f, 0.75f}, {1.25f, 0.75f}, {1.75f, 0.75f},
+    {-1.75f, 0.25f}, {-1.25f, 0.25f}, {-0.75f, 0.25f}, {-0.25f, 0.25f}, {0.25f, 0.25f}, {0.75f, 0.25f}, {1.25f, 0.25f}, {1.75f, 0.25f},
+    {-1.75f, -0.25f}, {-1.25f, -0.25f}, {-0.75f, -0.25f}, {-0.25f, -0.25f}, {0.25f, -0.25f}, {0.75f, -0.25f}, {1.25f, -0.25f}, {1.75f, -0.25f},
+    {-1.75f, -0.75f}, {-1.25f, -0.75f}, {-0.75f, -0.75f}, {-0.25f, -0.75f}, {0.25f, -0.75f}, {0.75f, -0.75f}, {1.25f, -0.75f}, {1.75f, -0.75f},
+    {-1.75f, -1.25f}, {-1.25f, -1.25f}, {-0.75f, -1.25f}, {-0.25f, -1.25f}, {0.25f, -1.25f}, {0.75f, -1.25f}, {1.25f, -1.25f}, {1.75f, -1.25f},
+    {-1.75f, -1.75f}, {-1.25f, -1.75f}, {-0.75f, -1.75f}, {-0.25f, -1.75f}, {0.25f, -1.75f}, {0.75f, -1.75f}, {1.25f, -1.75f}, {1.75f, -1.75f}
+};*/
+
+
+
 // initialize the color of each ball (ball0 ~ ball3)
-const D3DXCOLOR sphereColor[4] = { d3d::RED, d3d::RED, d3d::YELLOW, d3d::WHITE };
+const D3DXCOLOR sphereColor[2] = {d3d::YELLOW, d3d::WHITE};
 
 // -----------------------------------------------------------------------------
 // Transform matrices
@@ -104,7 +159,7 @@ public:
 
     bool hasIntersected(CSphere& ball) // 두 공이 충돌 했는지 확인
     {
-        D3DXVECTOR3 cord = this->getCenter(); // getPosition 함수 대신 getCenter활용
+        D3DXVECTOR3 cord = this->getCenter();
         D3DXVECTOR3 ball_cord = ball.getCenter();
         double xDistance = abs((cord.x - ball_cord.x) * (cord.x - ball_cord.x));
         double zDistance = abs((cord.z - ball_cord.z) * (cord.z - ball_cord.z));  //y는 보지 않는 이유 -> 게임이 조작되는 게임판 평면 상에서 움직이기 때문에 x축이랑 z축만 고려하면 된다
@@ -115,54 +170,44 @@ public:
             return true;
         }
         return false;
-
-        // Insert your code here.
     }
 
-    void hitBy(CSphere& ball) {
-        if (this->hasIntersected(ball)) {
-            // 위치 차이 계산
-            double diff_x = this->center_x - ball.center_x;
-            double diff_z = this->center_z - ball.center_z;
-
-            // 거리 계산
-            double distance = sqrt((diff_x * diff_x) + (diff_z * diff_z));
-
-            // 충돌 전 속도 계산: 
-            double thisVelocityX = this->m_velocity_x;
-            double thisVelocityZ = this->m_velocity_z;
-
-            double ballVelocityX = ball.m_velocity_x;
-            double ballVelocityZ = ball.m_velocity_z;
+    void hitBy(CSphere& whiteBall) {
+        if (this->hasIntersected(whiteBall)) {
+            // 기존의 속도 크기를 유지하기 위해 현재 속도의 크기를 계산
+            double currentSpeed = sqrt(whiteBall.m_velocity_x * whiteBall.m_velocity_x + whiteBall.m_velocity_z * whiteBall.m_velocity_z);
 
             // 충돌 각도 계산
-            // x축에서의 차이/전체 거리 차이
-            // z축에서의 차이/전체 거리 차이
-            // 각각 x축 및 y 축에서 힘이 얼마나 작용하는지 표현
-            // 각 축에서의 차이가 멀수록, 힘이 더 강하게 작용
-            // ex)x축에서 차이가 많이 난다면 x축 방향으로 힘이 강하게 작용
-            double cosTheta = diff_x / distance;
-            double sinTheta = diff_z / distance;
+            double diff_x = whiteBall.center_x - this->center_x;
+            double diff_z = whiteBall.center_z - this->center_z;
+            double angle = atan2(diff_z, diff_x);
 
-            // 최종 속도 및 방향 설정
-            // 계산식 readme.md에 업로드
-            this->setPower((ballVelocityX * cosTheta + ballVelocityZ * sinTheta) * cosTheta
-                - (thisVelocityZ * cosTheta - thisVelocityX * sinTheta) * sinTheta,
-                (ballVelocityX * cosTheta + ballVelocityZ * sinTheta) * sinTheta
-                + (thisVelocityZ * cosTheta - thisVelocityX * sinTheta) * cosTheta);
-
-            ball.setPower((thisVelocityX * cosTheta + thisVelocityZ * sinTheta) * cosTheta
-                - (ballVelocityZ * cosTheta - ballVelocityX * sinTheta) * sinTheta,
-                (thisVelocityX * cosTheta + thisVelocityZ * sinTheta) * sinTheta
-                + (ballVelocityZ * cosTheta - ballVelocityX * sinTheta) * cosTheta);
-
-            //맞으면 대상 공 삭제
-            //버전에 따라 점수 올리거나 속도 올릴 수 있음
-            this->setCenter(100, 100, 100);
-            
+            // 새로운 속도 벡터 계산 (방향은 충돌 각도에 따라, 크기는 원래 속도와 동일)
+            whiteBall.m_velocity_x = currentSpeed * cos(angle);
+            whiteBall.m_velocity_z = currentSpeed * sin(angle);
         }
-
     }
+
+    
+
+    void handleCollision(CSphere& whiteBall, CSphere& blueBall)
+    {
+        // Check if the white ball and blue ball have collided
+        if (whiteBall.hasIntersected(blueBall)) {
+            // Calculate the collision direction
+            D3DXVECTOR3 collisionDirection = blueBall.getCenter() - whiteBall.getCenter();
+            D3DXVec3Normalize(&collisionDirection, &collisionDirection);
+
+            // Calculate the reflection direction
+            D3DXVECTOR3 incident = whiteBall.getCenter() - blueBall.getCenter();
+            D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &collisionDirection) * collisionDirection;
+            D3DXVec3Normalize(&reflection, &reflection);
+
+            // Set the new velocity of the white ball based on the reflection direction
+            whiteBall.setPower(reflection.x, reflection.z);
+        }
+    }
+
 
     void ballUpdate(float timeDiff)
     {
@@ -176,16 +221,14 @@ public:
             float tX = cord.x + TIME_SCALE * timeDiff * m_velocity_x;
             float tZ = cord.z + TIME_SCALE * timeDiff * m_velocity_z;
 
-            //correction of position of ball
-            // Please uncomment this part because this correction of ball position is necessary when a ball collides with a wall
-            /*if(tX >= (4.5 - M_RADIUS))
-               tX = 4.5 - M_RADIUS;
-            else if(tX <=(-4.5 + M_RADIUS))
-               tX = -4.5 + M_RADIUS;
-            else if(tZ <= (-3 + M_RADIUS))
-               tZ = -3 + M_RADIUS;
-            else if(tZ >= (3 - M_RADIUS))
-               tZ = 3 - M_RADIUS;*/
+            if (tX >= (4.5 - M_RADIUS))
+                tX = 4.5 - M_RADIUS;
+            else if (tX <= (-4.5 + M_RADIUS))
+                tX = -4.5 + M_RADIUS;
+            else if (tZ <= (-3 + M_RADIUS))
+                tZ = -3 + M_RADIUS;
+            else if (tZ >= (3 - M_RADIUS))
+                tZ = 3 - M_RADIUS;
 
             this->setCenter(tX, cord.y, tZ);
         }
@@ -235,17 +278,13 @@ private:
 // -----------------------------------------------------------------------------
 // CWall class definition
 // -----------------------------------------------------------------------------
-
 class CWall {
-
 private:
-
-    float					m_x;
-    float					m_z;
+    float                   m_x;
+    float                   m_z;
     float                   m_width;
     float                   m_depth;
-    float					m_height;
-
+    float                   m_height;
 public:
     CWall(void)
     {
@@ -257,20 +296,27 @@ public:
     }
     ~CWall(void) {}
 public:
+    int sign(double value) {
+        if (value > 0) return 1;
+        if (value < 0) return -1;
+        return 0;
+    }
+    D3DXVECTOR3 getCenter(void) const
+    {
+        D3DXVECTOR3 center(m_x, m_height / 2.0f, m_z);
+        return center;
+    }
     bool create(IDirect3DDevice9* pDevice, float ix, float iz, float iwidth, float iheight, float idepth, D3DXCOLOR color = d3d::WHITE)
     {
         if (NULL == pDevice)
             return false;
-
         m_mtrl.Ambient = color;
         m_mtrl.Diffuse = color;
         m_mtrl.Specular = color;
         m_mtrl.Emissive = d3d::BLACK;
         m_mtrl.Power = 5.0f;
-
         m_width = iwidth;
         m_depth = idepth;
-
         if (FAILED(D3DXCreateBox(pDevice, iwidth, iheight, idepth, &m_pBoundMesh, NULL)))
             return false;
         return true;
@@ -291,18 +337,29 @@ public:
         pDevice->SetMaterial(&m_mtrl);
         m_pBoundMesh->DrawSubset(0);
     }
-
-    // Utility function to determine the sign of a value
-    inline int sign(double value) {
-        return (value > 0) - (value < 0);
+    CSphere getCollisionPoint(CSphere& ball) {
+        CSphere collisionPoint = ball;
+        int count = 0;
+        while (this->hasIntersectedx(collisionPoint) || this->hasIntersectedz(collisionPoint)) {
+            float backtrack_rate = 0.0000001;
+            collisionPoint.setCenter(collisionPoint.getCenter().x - backtrack_rate * ball.getVelocity_X(), collisionPoint.getCenter().y, collisionPoint.getCenter().z - backtrack_rate * ball.getVelocity_Z());
+            if (count++ > 100)
+                break;
+        }
+        return collisionPoint;
     }
-
     bool hasIntersectedx(CSphere& ball)
     {
         float sphereCenterX = ball.getCenter().x;
         float wallX = this->m_x;
-
-        float distance = abs(sphereCenterX - wallX) - ball.getRadius();
+        float distance = abs(sphereCenterX - wallX) - (ball.getRadius() + 0.1);
+        return distance <= 0;
+    }
+    bool hasIntersectedz(CSphere& ball)
+    {
+        float sphereCenterZ = ball.getCenter().z;
+        float wallZ = this->m_z;
+        float distance = abs(sphereCenterZ - wallZ) - (ball.getRadius() + 0.1);
         return distance <= 0;
     }
 
@@ -310,7 +367,7 @@ public:
         if (this->hasIntersectedx(ball)) {
             hitByx(ball);
         }
-        else if (this->hasIntersectedz(ball)) {
+        if (this->hasIntersectedz(ball)) {
             hitByz(ball);
         }
         return;
@@ -319,69 +376,48 @@ public:
 
     void hitByx(CSphere& ball)
     {
-        const float someSmallDistance = 0.00005;
+        const float someSmallDistance = 0.000001;
         if (!this->hasIntersectedx(ball))
             return;
 
+        CSphere cp = getCollisionPoint(ball);
         D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
 
-        D3DXVECTOR3 incident(ball.getVelocity_X(), 0.0f, ball.getVelocity_Z());
-
+        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
         D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
 
         ball.setPower(reflection.x, reflection.z);
-
-        D3DXVECTOR3 ballCenter = ball.getCenter();
-        ball.setCenter(ballCenter.x + sign(reflection.x) * someSmallDistance, ballCenter.y, ballCenter.z);
+        ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
     }
 
-
-
-    bool hasIntersectedz(CSphere& ball)
-    {
-        float sphereCenterZ = ball.getCenter().z;
-        float wallZ = this->m_z;
-
-        float distance = abs(sphereCenterZ - wallZ) - ball.getRadius();
-        return distance <= 0;
-    }
 
     void hitByz(CSphere& ball)
     {
-        const float someSmallDistance = 0.00005f;
+        const float someSmallDistance = 0.00005;
         if (!this->hasIntersectedz(ball))
             return;
 
+        CSphere cp = getCollisionPoint(ball);
         D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
 
-        D3DXVECTOR3 incident(ball.getVelocity_X(), 0.0f, ball.getVelocity_Z());
-
+        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
         D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
 
         ball.setPower(reflection.x, reflection.z);
-
-        D3DXVECTOR3 ballCenter = ball.getCenter();
-        ball.setCenter(ballCenter.x, ballCenter.y, ballCenter.z + sign(reflection.z) * someSmallDistance);
+        ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
     }
-
-
+    
     void setPosition(float x, float y, float z)
     {
         D3DXMATRIX m;
         this->m_x = x;
         this->m_z = z;
-
         D3DXMatrixTranslation(&m, x, y, z);
         setLocalTransform(m);
     }
-
     float getHeight(void) const { return M_HEIGHT; }
-
-
-
 private:
     void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
-
     D3DXMATRIX              m_mLocal;
     D3DMATERIAL9            m_mtrl;
     ID3DXMesh* m_pBoundMesh;
@@ -390,8 +426,6 @@ private:
 // -----------------------------------------------------------------------------
 // CLight class definition
 // -----------------------------------------------------------------------------
-
-
 
 class CLight {
 public:
@@ -479,11 +513,15 @@ private:
 // -----------------------------------------------------------------------------
 // Global variables
 // -----------------------------------------------------------------------------
-CWall	g_legoPlane;
-CWall	g_legowall[4];
-CSphere	g_sphere[4];
-CSphere	g_target_blueball;
-CLight	g_light;
+CWall   g_legoPlane;
+CWall   g_legowall[4];
+CSphere   g_sphere[64];
+CSphere   g_target_blueball;
+CLight   g_light;
+
+
+
+CSphere	whiteball; // 발사될 공
 
 double g_camera_pos[3] = { 0.0, 5.0, -8.0 };
 
@@ -520,15 +558,22 @@ bool Setup()
     g_legowall[3].setPosition(-4.56f, 0.12f, 0.0f);
 
     // create four balls and set the position
-    for (i = 0; i < 4; i++) {
-        if (false == g_sphere[i].create(Device, sphereColor[i])) return false;
+    for (i = 0; i < 64; i++) {
+        if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
         g_sphere[i].setCenter(spherePos[i][0], (float)M_RADIUS, spherePos[i][1]);
         g_sphere[i].setPower(0, 0);
     }
 
     // create blue ball for set direction
     if (false == g_target_blueball.create(Device, d3d::BLUE)) return false;
-    g_target_blueball.setCenter(.0f, (float)M_RADIUS, .0f);
+    g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
+
+
+    if (false == whiteball.create(Device, d3d::WHITE)) return false;
+    whiteball.setCenter(3.7f, (float)M_RADIUS, 0.f);
+
+  
+
 
     // light setting 
     D3DLIGHT9 lit;
@@ -546,7 +591,7 @@ bool Setup()
         return false;
 
     // Position and aim the camera.
-    D3DXVECTOR3 pos(0.0f, 5.0f, -8.0f);
+    D3DXVECTOR3 pos(7.f, 10.0f, 0.0f);
     D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
     D3DXVECTOR3 up(0.0f, 2.0f, 0.0f);
     D3DXMatrixLookAtLH(&g_mView, &pos, &target, &up);
@@ -590,33 +635,59 @@ bool Display(float timeDelta)
         Device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x00afafaf, 1.0f, 0);
         Device->BeginScene();
 
+
+
         // update the position of each ball. during update, check whether each ball hit by walls.
-        for (i = 0; i < 4; i++) {
-            g_sphere[i].ballUpdate(timeDelta);
-            for (j = 0; j < 4; j++) { g_legowall[i].hitBy(g_sphere[j]); }
+    
+        whiteball.ballUpdate(timeDelta);
+     
+        
+        for (j = 0; j < 4; j++)
+        {
+            g_legowall[j].hitBy(whiteball);
         }
+        
+
+        g_target_blueball.handleCollision(whiteball, g_target_blueball);
 
         // check whether any two balls hit together and update the direction of balls
-        for (i = 0; i < 4; i++) {
-            for (j = 0; j < 4; j++) {
-                if (i >= j) { continue; }
-                g_sphere[i].hitBy(g_sphere[j]);
+        for (i = 0; i < 64; i++) {
+            if (g_sphere[i].hasIntersected(whiteball)) {
+                g_sphere[i].hitBy(whiteball);
+                g_sphere[i].setCenter(-15.0f, M_RADIUS, -15.0f);
+                g_sphere[i].setPower(.0f, .0f);
             }
+        
         }
+
+        g_target_blueball.hitBy(whiteball);
+
 
         // draw plane, walls, and spheres
         g_legoPlane.draw(Device, g_mWorld);
         for (i = 0; i < 4; i++) {
             g_legowall[i].draw(Device, g_mWorld);
+        }
+        for (i = 0; i < 64; i++) {
             g_sphere[i].draw(Device, g_mWorld);
         }
+        
+        whiteball.draw(Device, g_mWorld);
         g_target_blueball.draw(Device, g_mWorld);
         g_light.draw(Device);
+
+        
+        if (whiteball.getCenter().x >= g_target_blueball.getCenter().x) {
+            ::MessageBox(0, "Game Over!", "Game Over", MB_OK);
+            ::PostQuitMessage(0);  // exit of the program -> change to the life reduction
+        }
+        
 
         Device->EndScene();
         Device->Present(0, 0, 0, 0);
         Device->SetTexture(0, NULL);
     }
+
     return true;
 }
 
@@ -649,15 +720,9 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
         case VK_SPACE:
 
-            D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
-            D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
-            double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
-                pow(targetpos.z - whitepos.z, 2)));		// 기본 1 사분면
-            if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 사분면
-            if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 사분면
-            if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0) { theta = PI + theta; } // 3 사분면
-            double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
-            g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
+
+            
+            whiteball.setPower(-2, 0);
 
             break;
 
@@ -691,14 +756,12 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     D3DXMatrixRotationY(&mX, dx);
                     D3DXMatrixRotationX(&mY, dy);
                     g_mWorld = g_mWorld * mX * mY;
-
                     break;
                 }
             }
 
             old_x = new_x;
             old_y = new_y;
-
         }
         else {
             isReset = true;
@@ -708,7 +771,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 dy = (old_y - new_y);// * 0.01f;
 
                 D3DXVECTOR3 coord3d = g_target_blueball.getCenter();
-                g_target_blueball.setCenter(coord3d.x + dx * (-0.007f), coord3d.y, coord3d.z + dy * 0.007f);
+                g_target_blueball.setCenter(coord3d.x, coord3d.y, coord3d.z + dy * 0.007f);  // allows blue ball to move in the linear line of z axis
             }
             old_x = new_x;
             old_y = new_y;
@@ -716,6 +779,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             move = WORLD_MOVE;
         }
         break;
+
     }
     }
 
