@@ -63,6 +63,8 @@ const float spherePos[64][2] = {
 };
 */
 
+const float empty_sphere[64][2] = {};
+
 const float spherePos1[64][2] = {
      {-1.75f, 1.75f}, {-1.25f, 1.75f}, {-0.75f, 1.75f}, {-0.25f, 1.75f}, {0.25f, 1.75f}, {0.75f, 1.75f}, {1.25f, 1.75f}, {1.75f, 1.75f},
     {-1.75f, 1.25f}, {-1.25f, 1.25f}, {-0.75f, 1.25f}, {-0.25f, 1.25f}, {0.25f, 1.25f}, {0.75f, 1.25f}, {1.25f, 1.25f}, {1.75f, 1.25f},
@@ -705,7 +707,7 @@ void eff_in(D3DXVECTOR3& pos) {
 // Global variables
 // -----------------------------------------------------------------------------
 CWall   g_legoPlane;
-CWall   g_legowall[4];
+CWall   g_legowall[3];
 CSphere   g_sphere[64];
 CSphere   g_target_blueball;
 CLight   g_light;
@@ -716,25 +718,30 @@ CSphere	whiteball; // 발사될 공
 
 double g_camera_pos[3] = { 0.0, 5.0, -8.0 };
 
+
+TCHAR str[100];
+RECT rc;
+
+
 int g_stage = 1;
 int g_life = 5;
 int g_score = 0;
 int g_combo = 0;
 int g_phase = 0; // -1: 처음실행 0: 시작화면, 1: 게임화면, 2: 랭킹화면
 
-bool g_ready = false;
+bool g_ready0 = false;
+bool g_ready1 = false;
 int frame_1 = 0;
 int frame_2 = 0;
 int frame_3 = 0;
 int frame_4 = 0;
 
-bool stage1 = true;
+bool stage1 = false;
 bool stage2 = false;
 bool stage3 = false;
 bool stage4 = false;
 bool stage5 = false;
 
-int ball_destroyed = 0;
 
 // -----------------------------------------------------------------------------
 // Functions
@@ -762,6 +769,9 @@ bool Setup()
     fontDesc.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
     strcpy_s(fontDesc.FaceName, "Arial");
 
+    
+    SetRect(&rc, 50, 50, 0, 0); // x, y, width, height
+
     D3DXCreateFontIndirect(Device, &fontDesc, &hud_Font);
 
     //사진 불러오기
@@ -774,7 +784,7 @@ bool Setup()
     D3DXCreateSprite(Device, &rank_Sprite);
     D3DXCreateSprite(Device, &start_Sprite); // 스프라이트 생성*****************************************************************************************************	
     spritePos_start.x = 0.0f;
-    spritePos_start.y = -1024.0f;
+    spritePos_start.y = 0.0f;
     spritePos_rank.x = 0.0f;
     spritePos_rank.y = -1024.0f;
 
@@ -798,14 +808,12 @@ bool Setup()
     if (false == g_legowall[1].create(Device, -1, -1, 9, 0.3f, 0.12f, color_puang2)) return false;
     g_legowall[1].setPosition(0.0f, 0.12f, -3.06f);
     if (false == g_legowall[2].create(Device, -1, -1, 0.12f, 0.3f, 6.24f, color_puang2)) return false;
-    g_legowall[2].setPosition(4.56f, 0.12f, 0.0f);
-    if (false == g_legowall[3].create(Device, -1, -1, 0.12f, 0.3f, 6.24f, color_puang2)) return false;
-    g_legowall[3].setPosition(-4.56f, 0.12f, 0.0f);
+    g_legowall[2].setPosition(-4.56f, 0.12f, 0.0f);
 
     // create four balls and set the position
     for (i = 0; i < 64; i++) {
         if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
-        g_sphere[i].setCenter(spherePos1[i][0], (float)M_RADIUS, spherePos1[i][1]);
+        g_sphere[i].setCenter(empty_sphere[i][0], (float)M_RADIUS, empty_sphere[i][1]);
         g_sphere[i].setPower(0, 0);
     }
 
@@ -916,7 +924,7 @@ bool Setup_stage()
 void Cleanup(void)
 {
     g_legoPlane.destroy();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         g_legowall[i].destroy();
     }
 
@@ -958,7 +966,7 @@ bool Display(float timeDelta)
         whiteball.ballUpdate(timeDelta);
      
         
-        for (j = 0; j < 4; j++)
+        for (j = 0; j < 3; j++)
         {
             g_legowall[j].hitBy(whiteball);
         }
@@ -980,7 +988,7 @@ bool Display(float timeDelta)
 
         // draw plane, walls, and spheres
         g_legoPlane.draw(Device, g_mWorld);
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < 3; i++) {
             g_legowall[i].draw(Device, g_mWorld);
         }
         for (i = 0; i < 64; i++) {
@@ -996,7 +1004,8 @@ bool Display(float timeDelta)
         
         switch (g_phase)
         {
-        case -1:     // 처음 실행시 시작화면
+        case 0:     // 시작화면, 내려옴
+
             if (start_Sprite && start_Texture) {
                 start_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
                 start_Sprite->Draw(start_Texture, NULL, NULL, &spritePos_start, D3DCOLOR_XRGB(255, 255, 255));
@@ -1004,26 +1013,13 @@ bool Display(float timeDelta)
             }
 
             // press space to continue 
-            // g_phase == -1 일때 누르면 g_phase +=2
 
-            break;
 
-        case 0:     // 시작화면, 내려옴
+            sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                     Press space to start!!!");
+            // 정보창 생성
+            hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
 
-            if (frame_1 < 115) {
-                if (start_Sprite && start_Texture) {
-                    start_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
-                    start_Sprite->Draw(start_Texture, NULL, NULL, &spritePos_start, D3DCOLOR_XRGB(255, 255, 255));
-                    start_Sprite->End();
-                    eff_in(spritePos_start);
-                    frame_1++;
-                }
-            }
-            else {
-                start_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
-                start_Sprite->Draw(start_Texture, NULL, NULL, &spritePos_start, D3DCOLOR_XRGB(255, 255, 255));
-                start_Sprite->End();
-            }
+
             break;
 
         case 1:  // 시작화면, 올라감
@@ -1042,18 +1038,13 @@ bool Display(float timeDelta)
             }
             else {
 
-                // 정보창
-                TCHAR str[100];
+
                 sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d\n\n\n\n\n\n\n\n                          Press Space!!!", g_stage, g_score, g_combo, g_life);
 
-                // 글자크기
-                RECT rc;
-                SetRect(&rc, 50, 50, 0, 0); // x, y, width, height
 
-                // 정보창 생성
                 hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
 
-                g_ready = true;
+                g_ready1 = true;
                 break;
             }
             break;
@@ -1061,13 +1052,8 @@ bool Display(float timeDelta)
 
         case 2:  // 게임 진행 화면, 스테이지
 
-            // 정보창
-            TCHAR str[100];
-            sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d", g_stage, g_score, g_combo, g_life);
 
-            // 글자크기
-            RECT rc;
-            SetRect(&rc, 50, 50, 0, 0); // x, y, width, height
+            sprintf_s(str, "Stage: %d     Score: %03d     Combo: %02d\nLife:    %d", g_stage, g_score, g_combo, g_life);
 
             // 정보창 생성
             hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
@@ -1133,39 +1119,18 @@ bool Display(float timeDelta)
                 rank_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
                 rank_Sprite->Draw(rank_Texture, NULL, NULL, &spritePos_rank, D3DCOLOR_XRGB(255, 255, 255));
                 rank_Sprite->End();
-
                 UpdateRankings(new_ranking);
                 DisplayRankings(hud_Font, g_rankings);
-            }
-            break;
 
-
-        case 4:  // 랭킹화면 올라감
-
-            if (frame_4 < 115) {
-                if (rank_Sprite && rank_Texture) {
-                    rank_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
-                    rank_Sprite->Draw(rank_Texture, NULL, NULL, &spritePos_rank, D3DCOLOR_XRGB(255, 255, 255));
-                    rank_Sprite->End();
-                    eff_out(spritePos_rank);
-                    frame_4++;
-                }
-
-                UpdateRankings(new_ranking);
-                DisplayRankings(hud_Font, g_rankings);// update the rankings 아직 추가안함!!!!!!!!!!!!!!!!!!!!!!!!
-
+                // 정보창
                 
+                sprintf_s(str, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                          Press Space!!!");
 
+
+                // 정보창 생성
+                hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
             }
             break;
-
-        case 5:  // 변수들 초기화하고 g_phase = 0으로 돌아감
-			g_stage = 1;
-			g_life = 5;
-			g_score = 0;
-			g_combo = 0;
-			g_phase = 0;
-			break;
 
         }
 
@@ -1223,12 +1188,45 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         case VK_SPACE:
-            if (g_phase == 1 && g_ready == true) {
+
+            if (g_phase == 0) {
+                g_phase += 1;
+            }
+            else if (g_phase == 1 && g_ready1 == true) {
                 whiteball.setPower(-2, 0);
                 g_phase += 1;
             }
             else if (g_phase == 2) {
                 whiteball.setPower(-2, 0);
+            }
+            else if (g_phase == 3) {
+                whiteball.setPower(-2, 0);
+
+
+                // 변수 초기화 하고 시작화면 내려오기
+                g_phase = 0;
+                g_stage = 1;
+                g_life = 5;
+                g_score = 0;
+                g_combo = 0;
+
+
+                g_ready1 = false;
+                frame_1 = 0;
+                frame_2 = 0;
+                frame_3 = 0;
+                frame_4 = 0;
+
+                stage1 = true;
+                stage2 = false;
+                stage3 = false;
+                stage4 = false;
+                stage5 = false;
+
+                spritePos_start.y =  0.0f;
+
+
+
             }
             break;
 
@@ -1257,6 +1255,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     break;
 	}
 
+    
     case WM_MOUSEMOVE:
     {
         int new_x = LOWORD(lParam);
