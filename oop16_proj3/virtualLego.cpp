@@ -94,7 +94,7 @@ D3DXMATRIX g_mProj;
 #define M_RADIUS 0.21   // ball radius
 #define PI 3.14159265
 #define M_HEIGHT 0.01
-#define DECREASE_RATE 0.9982
+#define DECREASE_RATE 1.0
 
 // -----------------------------------------------------------------------------
 // CSphere class definition
@@ -657,7 +657,6 @@ bool Display(float timeDelta)
                 g_sphere[i].setCenter(-15.0f, M_RADIUS, -15.0f);
                 g_sphere[i].setPower(.0f, .0f);
             }
-        
         }
 
         g_target_blueball.hitBy(whiteball);
@@ -720,8 +719,6 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
         case VK_SPACE:
 
-
-            
             whiteball.setPower(-2, 0);
 
             break;
