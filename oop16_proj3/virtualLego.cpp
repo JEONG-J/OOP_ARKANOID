@@ -720,7 +720,7 @@ int g_stage = 1;
 int g_life = 5;
 int g_score = 0;
 int g_combo = 0;
-int g_phase = -1; // -1: 처음실행 0: 시작화면, 1: 게임화면, 2: 랭킹화면
+int g_phase = 0; // -1: 처음실행 0: 시작화면, 1: 게임화면, 2: 랭킹화면
 
 bool g_ready = false;
 int frame_1 = 0;
@@ -728,7 +728,13 @@ int frame_2 = 0;
 int frame_3 = 0;
 int frame_4 = 0;
 
+bool stage1 = true;
+bool stage2 = false;
+bool stage3 = false;
+bool stage4 = false;
+bool stage5 = false;
 
+int ball_destroyed = 0;
 
 // -----------------------------------------------------------------------------
 // Functions
@@ -768,9 +774,9 @@ bool Setup()
     D3DXCreateSprite(Device, &rank_Sprite);
     D3DXCreateSprite(Device, &start_Sprite); // 스프라이트 생성*****************************************************************************************************	
     spritePos_start.x = 0.0f;
-    spritePos_start.y = 0.0f;
+    spritePos_start.y = -1024.0f;
     spritePos_rank.x = 0.0f;
-    spritePos_rank.y = 0.0f;
+    spritePos_rank.y = -1024.0f;
 
     g_rankings = ReadRankings("rank.txt");
     // ************************************************************************************************************
@@ -1072,38 +1078,67 @@ bool Display(float timeDelta)
             // 스테이지 별로 다른 출력
             switch (g_stage) {
             case 1:
-                Setup_stage();
+                if (stage1 == false)
+                {
+                    Setup_stage();
+					stage1 = true;
+				}
                 break;
 
             case 2:
-                Setup_stage();
+                if (stage2 == false)
+                {
+                    Setup_stage();
+                    stage2 = true;
+                }
                 break;
 
             case 3:
-                Setup_stage();
+                if (stage3 == false)
+                {
+                    Setup_stage();
+                    stage3 = true;
+                }
                 break;
 
             case 4:
-                Setup_stage();
+                if (stage4 == false)
+                {
+                    Setup_stage();
+                    stage4 = true;
+                }
                 break;
 
             case 5:
-                Setup_stage();
+                if (stage5 == false)
+                {
+                    Setup_stage();
+                    stage5 = true;
+                }
                 break;
             }
 
         case 3:   // 랭킹화면 내려옴
 
-            if (rank_Sprite && rank_Texture) {
+            if (frame_3 < 115) {
+                if (rank_Sprite && rank_Texture) {
+                    rank_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
+                    rank_Sprite->Draw(rank_Texture, NULL, NULL, &spritePos_rank, D3DCOLOR_XRGB(255, 255, 255));
+                    rank_Sprite->End();
+                    eff_in(spritePos_rank);
+                    frame_3++;
+                }
+            }
+            else {
                 rank_Sprite->Begin(D3DXSPRITE_ALPHABLEND);
                 rank_Sprite->Draw(rank_Texture, NULL, NULL, &spritePos_rank, D3DCOLOR_XRGB(255, 255, 255));
                 rank_Sprite->End();
-            }
 
-            // 랭킹 업데이트
-            UpdateRankings(new_ranking);
-            DisplayRankings(hud_Font, g_rankings);
+                UpdateRankings(new_ranking);
+                DisplayRankings(hud_Font, g_rankings);
+            }
             break;
+
 
         case 4:  // 랭킹화면 올라감
 
