@@ -17,14 +17,6 @@
 #include <string>
 #include <limits>
 
-//this is for music
-#include <xaudio2.h>
-#pragma comment(lib, "xaudio2.lib")
-extern IXAudio2* g_audioEngine;
-extern IXAudio2SourceVoice* g_sourceVoice;
-extern IXAudio2MasteringVoice* g_masterVoice;
-
-
 //#define INFINITY FLT_MAX
 
 #define EPSILON 0.001f
@@ -137,9 +129,6 @@ namespace d3d
 	//
 	// Constants
 	//
-
-	//this is for music
-
 }
 
 #endif // __d3dUtilityH__
