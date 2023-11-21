@@ -22,14 +22,25 @@
 #include <algorithm> // std::sort를 위해 추가
 #include <windows.h> // 딜레이위해 추가
 
+
 //for the sake of sound function
 #include <windows.h>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 
+
+
+
+
 IDirect3DDevice9* Device = NULL;
 
+// -----------------------------------------------------------------------------
+// music
+// -----------------------------------------------------------------------------
 bool isMusicPlaying = false;
+int currentIndex = 0;
+std::vector<std::string> songs = {"test", "WA_SANDS", "mario", "puang"};
+
 
 // -----------------------------------------------------------------------------
 // 추가추가추가추가
@@ -69,7 +80,7 @@ const float spherePos[64][2] = {
 
 };
 */
-
+//hi
 const float spherePos0[64][2] = {}; // 테스트용도!!!!
 
 const float spherePos1[64][2] = {
@@ -552,6 +563,21 @@ private:
     d3d::BoundingSphere m_bound;
 };
 
+// ---------------------------------------------------------------------------- -
+// music display
+// -----------------------------------------------------------------------------
+void musicListDisplay(int musicIndex)
+{
+    TCHAR str[150];
+    RECT rccc;
+    SetRect(&rccc, 500, 10, 0, 0);
+    
+    sprintf_s(str, "Song name: %s\n TAB:Turn on/off BGM", songs[musicIndex].c_str());
+
+    // 정보창 생성
+    hud_Font->DrawText(NULL, str, -1, &rccc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+}
+
 
 bool playMusic(const std::string& songName) {
     std::string filePath = "Music/" + songName + ".wav";
@@ -567,6 +593,10 @@ bool playMusic(const std::string& songName) {
 void stopMusic() {
     PlaySound(NULL, NULL, 0);
     isMusicPlaying = false;
+}
+
+void changeStageSong(int inputStage) {
+    playMusic(songs[inputStage]);
 }
 
 
@@ -665,6 +695,9 @@ void DisplayRankings(ID3DXFont* font, const std::vector<Ranking>& rankings) {
         rcc.top += 50; // 줄바꿈 너비
     }
 }
+
+
+
 
 
 // -----------------------------------------------------------------------------
@@ -910,7 +943,9 @@ void Setup_Stage(int stage) {
             g_sphere[i].setCenter(spherePos1[i][0], (float)M_RADIUS, spherePos1[i][1]);
             g_sphere[i].setPower(0, 0);
             g_readyball = true;
+            
         }
+
         break;
     case 2:
         for (int i = 0; i < 64; i++) {
@@ -918,7 +953,9 @@ void Setup_Stage(int stage) {
             g_sphere[i].setCenter(spherePos2[i][0], (float)M_RADIUS, spherePos2[i][1]);
             g_sphere[i].setPower(0, 0);
             g_readyball = true;
+            
         }
+
         break;
     case 3:
         for (int i = 0; i < 64; i++) {
@@ -926,7 +963,9 @@ void Setup_Stage(int stage) {
             g_sphere[i].setCenter(spherePos3[i][0], (float)M_RADIUS, spherePos3[i][1]);
             g_sphere[i].setPower(0, 0);
             g_readyball = true;
+            
         }
+
         break;
 
     default:
@@ -1078,6 +1117,7 @@ bool Display(float timeDelta)
                 hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
                 g_readyfor = true;
                 g_ready1 = true;
+
                 break;
             }
             break;
@@ -1090,6 +1130,11 @@ bool Display(float timeDelta)
 
             // 정보창 생성
             hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
+            musicListDisplay(g_stage);
+
+
+            
+
 
             // 스테이지 별로 기능 구현
             if (g_stage == 1 && ball_cnt == 40) {
@@ -1099,7 +1144,10 @@ bool Display(float timeDelta)
                 g_readyball = true;
                 firstrun = false;
                 g_stage = 2;
+                playMusic(songs[g_stage]);
                 ball_cnt = 0;
+
+
             }
             else if (g_stage == 2 && ball_cnt == 64) {
                 g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
@@ -1108,7 +1156,11 @@ bool Display(float timeDelta)
                 g_readyball = true;
                 firstrun = false;
                 g_stage = 3;
+                playMusic(songs[g_stage]);
                 ball_cnt = 0;
+
+
+
             }
             else if (g_stage == 3 && ball_cnt == 64) {
                 g_target_blueball.setCenter(4.2f, (float)M_RADIUS, 0.0f);
@@ -1116,6 +1168,8 @@ bool Display(float timeDelta)
                 whiteball.setPower(0, 0);
                 g_readyball = false;
                 firstrun = false;
+                
+
                 if (g_ready2 == true) {
                     sprintf_s(str, "\n\n\n\n\n\n\n\n\n                            Good Job :)");
                     hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
@@ -1252,7 +1306,19 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             else if (g_phase == 1 && g_ready1 == true && g_readyball == true) {
                 whiteball.setPower(-2, 0);
                 g_phase += 1;
-                g_readyball = false;                
+                g_readyball = false;
+
+                if ((g_stage - 1) == 0)
+                {
+                    playMusic(songs[g_stage]);//music
+                    currentIndex++;
+                } 
+                else
+                {
+                    changeStageSong(g_stage);//music by stage
+                    currentIndex++;
+                }
+
             }
             else if (g_phase == 2 && g_readyfor == true && g_life == 0) {
                 ball_cnt = 0;
@@ -1307,6 +1373,9 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 spritePos_start.y =  0.0f;
                 spritePos_rank.y = -1024.0f;
 
+                playMusic(songs[g_stage - 1]);//music
+
+
             }
             break;
         case VK_TAB: // Key 'TAB' pressed
@@ -1316,13 +1385,15 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 stopMusic();
             }
             else {
-                playMusic("test");
+                playMusic(songs[currentIndex]);
             }
             break;
         }
+   
         // 개발자 옵션
         case VK_F1:
             g_phase += 1;
+
 			break;
 
         case VK_F2:
@@ -1427,11 +1498,13 @@ int WINAPI WinMain(HINSTANCE hinstance,
         ::MessageBox(0, "Setup() - FAILED", 0, 0);
         return 0;
     }
-
-    if (!playMusic("test"))
+    if (!playMusic(songs[0]))
     {
         ::MessageBox(0, "music - FAILED", 0, 0);
     }
+
+    
+
 
     d3d::EnterMsgLoop( Display );
 
