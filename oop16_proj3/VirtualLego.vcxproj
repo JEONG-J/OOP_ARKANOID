@@ -49,8 +49,8 @@
     <OutDir>.\Debug\</OutDir>
     <IntDir>.\Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Program Files\Microsoft DirectX SDK\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\Microsoft DirectX SDK\Lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -138,13 +138,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dUtility.h" />
-    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VirtualLego.rc" />
+    <Text Include="rank.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="Music\test.wav" />
+    <Image Include="rank_puang.png" />
+    <Image Include="start_puang.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
