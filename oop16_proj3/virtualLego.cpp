@@ -831,7 +831,7 @@ bool Setup()
     // create balls and set the position
     for (i = 0; i < 64; i++) {
         if (false == g_sphere[i].create(Device, sphereColor[0])) return false;
-        g_sphere[i].setCenter(spherePos0[i][0], (float)M_RADIUS, spherePos0[i][1]);
+        g_sphere[i].setCenter(spherePos1[i][0], (float)M_RADIUS, spherePos1[i][1]);
         g_sphere[i].setPower(0, 0);
     }
 
@@ -1067,7 +1067,7 @@ bool Display(float timeDelta)
         case 2:  // 게임 진행 화면, 스테이지
 
 
-            sprintf_s(str, "Stage: %d     Score: %03d\nLife:    %d\n%d %d", g_stage, g_score, g_life, ball_cnt, g_phase);
+            sprintf_s(str, "Stage: %d     Score: %03d\nLife:    %d\n%d %d", g_stage, g_score, g_life);
 
             // 정보창 생성
             hud_Font->DrawText(NULL, str, -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(255, 255, 255));
