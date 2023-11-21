@@ -25,7 +25,6 @@
 IDirect3DDevice9* Device = NULL;
 
 
-
 // -----------------------------------------------------------------------------
 // 추가추가추가추가
 // -----------------------------------------------------------------------------
@@ -375,74 +374,77 @@ public:
         pDevice->SetMaterial(&m_mtrl);
         m_pBoundMesh->DrawSubset(0);
     }
+
     CSphere getCollisionPoint(CSphere& ball) {
         CSphere collisionPoint = ball;
         int count = 0;
-        while (this->hasIntersectedx(collisionPoint) || this->hasIntersectedz(collisionPoint)) {
-            float backtrack_rate = 0.0000001;
+        while (this->hasIntersected(ball)) {
+            float backtrack_rate = 0.0000005;
             collisionPoint.setCenter(collisionPoint.getCenter().x - backtrack_rate * ball.getVelocity_X(), collisionPoint.getCenter().y, collisionPoint.getCenter().z - backtrack_rate * ball.getVelocity_Z());
             if (count++ > 100)
                 break;
         }
         return collisionPoint;
     }
-    bool hasIntersectedx(CSphere& ball)
+
+    bool hasIntersectedX(CSphere& ball)
     {
         float sphereCenterX = ball.getCenter().x;
         float wallX = this->m_x;
-        float distance = abs(sphereCenterX - wallX) - (ball.getRadius() + 0.1);
-        return distance <= 0;
+        float centerDistance = abs(sphereCenterX - wallX);
+        return centerDistance <= ball.getRadius() + m_width / 2;
     }
-    bool hasIntersectedz(CSphere& ball)
+    bool hasIntersectedZ(CSphere& ball)
     {
         float sphereCenterZ = ball.getCenter().z;
         float wallZ = this->m_z;
-        float distance = abs(sphereCenterZ - wallZ) - (ball.getRadius() + 0.1);
-        return distance <= 0;
+        float centerDistance = abs(sphereCenterZ - wallZ);
+        return centerDistance <= ball.getRadius() + m_depth / 2;
+    }
+
+    bool hasIntersected(CSphere& ball) {
+        return hasIntersectedX(ball) && hasIntersectedZ(ball);
     }
 
     void hitBy(CSphere& ball) {
-        if (this->hasIntersectedx(ball)) {
-            hitByx(ball);
-        }
-        if (this->hasIntersectedz(ball)) {
-            hitByz(ball);
+        if (this->hasIntersected(ball)) {
+            CSphere cp = getCollisionPoint(ball);
+            D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
+
+            if (isWallHorizontal()) {
+                impactCollisionX(incident, ball);
+            } else {
+                impactCollisionZ(incident, ball);
+            }
+
+            ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
         }
         return;
     }
 
+    bool isWallHorizontal() {
+        return m_depth > m_width;
+    }
 
-    void hitByx(CSphere& ball)
+    void impactCollisionX(D3DXVECTOR3 incident, CSphere& ball)
     {
-        const float someSmallDistance = 0.000001;
-        if (!this->hasIntersectedx(ball))
-            return;
+        const float someSmallDistance = 0.0000001;
 
-        CSphere cp = getCollisionPoint(ball);
         D3DXVECTOR3 normal(1.0f, 0.0f, 0.0f);
-
-        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
         D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
 
         ball.setPower(reflection.x, reflection.z);
-        ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
     }
 
 
-    void hitByz(CSphere& ball)
+    void impactCollisionZ(D3DXVECTOR3 incident, CSphere& ball)
     {
-        const float someSmallDistance = 0.00005;
-        if (!this->hasIntersectedz(ball))
-            return;
+        const float someSmallDistance = 0.0000001;
 
-        CSphere cp = getCollisionPoint(ball);
         D3DXVECTOR3 normal(0.0f, 0.0f, 1.0f);
-
-        D3DXVECTOR3 incident(cp.getVelocity_X(), 0.0f, cp.getVelocity_Z());
         D3DXVECTOR3 reflection = incident - 2.0f * D3DXVec3Dot(&incident, &normal) * normal;
 
         ball.setPower(reflection.x, reflection.z);
-        ball.setCenter(cp.getCenter().x, cp.getCenter().y, cp.getCenter().z);
     }
     
     void setPosition(float x, float y, float z)
